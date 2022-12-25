@@ -8,7 +8,6 @@
                "str"
                "yason"
                "jonathan"
-               "cl-async"
                "local-time"
                "bordeaux-threads"
                "babel"
