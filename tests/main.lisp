@@ -1,0 +1,11 @@
+(defpackage tel-bot/tests/main
+  (:use :cl
+        :tel-bot
+        :rove))
+(in-package :tel-bot/tests/main)
+
+;; NOTE: To run this test file, execute `(asdf:test-system :tel-bot)' in your Lisp.
+
+(deftest test-target-1
+  (testing "should (= 1 1) to be true"
+    (ok (= 1 1))))
