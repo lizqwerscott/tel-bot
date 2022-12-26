@@ -106,10 +106,11 @@
 (defun test ()
   (manager-instance-command "open" "3bcba904a6974cdf84eeba6c3e8f14d5" "6ffeaca6c142404299e46c43b2054d41"))
 
-(defmethod on-command ((bot manager-bot) (command (eql :mcstate)) text)
-  (declare (ignorable text))
-  (refersh-instaces)
-  (let ((status (manager-status))
+(defcommand
+    (:mcstate "输出mc服务器状态" chat text)
+    (declare (ignorable text))
+    (refersh-instaces)
+    (let ((status (manager-status))
         (instances (handle-instaces-info)))
     (reply
      (format nil
@@ -117,15 +118,16 @@
              status
              instances))))
 
-(defmethod on-command ((bot manager-bot) (command (eql :mcstart)) text)
-  (declare (ignorable text))
-  (refersh-instaces)
-  (handler-case
+(defcommand
+    (:mcstart "启动指定序号的mc服务器" chat text)
+    (declare (ignorable text))
+    (refersh-instaces)
+    (handler-case
       (let ((index (parse-integer text)))
         (let ((instance (search-instance index)))
           (if instance
               (progn
-                (send-message bot (get-current-chat) "正在启动实例......")
+                (send-text chat "正在启动实例......")
                 (let ((res (manager-instance-command "open" (second (second instance)) (first instance))))
                   (reply
                    (if (listp res)
@@ -135,15 +137,16 @@
     (error (c)
       (reply (format nil "[Error]: ~A" c)))))
 
-(defmethod on-command ((bot manager-bot) (command (eql :mcstop)) text)
-  (declare (ignorable text))
-  (refersh-instaces)
-  (handler-case
+(defcommand
+    (:mcstop "关闭指定序号的mc服务器" chat text)
+    (declare (ignorable text))
+    (refersh-instaces)
+    (handler-case
       (let ((index (parse-integer text)))
         (let ((instance (search-instance index)))
           (if instance
               (progn
-                (send-message bot (get-current-chat) "正在关闭实例......")
+                (send-text chat "正在关闭实例......")
                 (let ((res (manager-instance-command "stop" (second (second instance)) (first instance))))
                   (reply
                    (if (listp res)
@@ -153,39 +156,41 @@
     (error (c)
       (reply (format nil "[Error]: ~A" c)))))
 
-(defmethod on-command ((bot manager-bot) (command (eql :mcrestart)) text)
-  (declare (ignorable text))
-  (refersh-instaces)
-  (handler-case
-      (let ((index (parse-integer text)))
-        (let ((instance (search-instance index)))
-          (if instance
-              (progn
-                (send-message bot (get-current-chat) "正在重新启动实例......")
-                (let ((res (manager-instance-command "restart" (second (second instance)) (first instance))))
-                  (reply
-                   (if (listp res)
-                       "实例需要几分钟才能重启成功，请等待几分钟后在进入"
-                       (format nil "实例重启失败: ~A" res)))))
-              (reply "没有发现这个实例"))))
-    (error (c)
-      (reply (format nil "[Error]: ~A" c)))))
+(defcommand
+    (:mcrestart "重启指定序号的mc服务器" chat text)
+    (declare (ignorable text))
+    (refersh-instaces)
+    (handler-case
+        (let ((index (parse-integer text)))
+          (let ((instance (search-instance index)))
+            (if instance
+                (progn
+                  (send-message bot (get-current-chat) "正在重新启动实例......")
+                  (let ((res (manager-instance-command "restart" (second (second instance)) (first instance))))
+                    (reply
+                     (if (listp res)
+                         "实例需要几分钟才能重启成功，请等待几分钟后在进入"
+                         (format nil "实例重启失败: ~A" res)))))
+                (reply "没有发现这个实例"))))
+      (error (c)
+        (reply (format nil "[Error]: ~A" c)))))
 
-(defmethod on-command ((bot manager-bot) (command (eql :mckill)) text)
-  (refersh-instaces)
-  (handler-case
-      (let ((index (parse-integer text)))
-        (let ((instance (search-instance index)))
-          (if instance
-              (progn
-                (send-message bot (get-current-chat) "正在强制关闭实例......")
-                (let ((res (manager-instance-command "kill" (second (second instance)) (first instance))))
-                  (reply
-                   (if (listp res)
-                       "实例强制关闭成功"
-                       (format nil "实例强制关闭失败: ~A" res)))))
-              (reply "没有发现这个实例"))))
-    (error (c)
-      (reply (format nil "[Error]: ~A" c)))))
+(defcommand
+    (:mckill "强制关闭指定序号的mc服务器" chat text)
+    (refersh-instaces)
+    (handler-case
+        (let ((index (parse-integer text)))
+          (let ((instance (search-instance index)))
+            (if instance
+                (progn
+                  (send-message bot (get-current-chat) "正在强制关闭实例......")
+                  (let ((res (manager-instance-command "kill" (second (second instance)) (first instance))))
+                    (reply
+                     (if (listp res)
+                         "实例强制关闭成功"
+                         (format nil "实例强制关闭失败: ~A" res)))))
+                (reply "没有发现这个实例"))))
+      (error (c)
+        (reply (format nil "[Error]: ~A" c)))))
 
 (in-package :cl-user)

@@ -40,28 +40,31 @@
 (defun get-random-text (command)
   (web-get "api.vvhan.com" (format nil "api/~A" command)))
 
-(defmethod on-command ((bot manager-bot) (command (eql :love)) text)
-  (declare (ignorable text))
-  (handler-case
+(defcommand
+    (:love "发送一段情话" chat text)
+    (declare (ignorable text))
+    (handler-case
       (let ((text (get-random-text "love")))
         (reply text))
     (error (c)
       (reply (format nil "[Error]: ~A" c)))))
 
-
-(defmethod on-command ((bot manager-bot) (command (eql :sao)) text)
-  (declare (ignorable text))
-  (handler-case
+(defcommand
+    (:sao "发送一段骚话" chat text)
+    (declare (ignorable text))
+    (handler-case
       (let ((text (get-random-text "sao")))
         (reply text))
     (error (c)
       (reply (format nil "[Error]: ~A" c)))))
 
-(defmethod on-command ((bot manager-bot) (command (eql :joke)) text)
-  (declare (ignorable text))
-  (handler-case
+(defcommand
+    (:joke "发送一段笑话" chat text)
+    (declare (ignorable text))
+    (handler-case
       (let ((text (get-random-text "joke")))
         (reply text))
     (error (c)
       (reply (format nil "[Error]: ~A" c)))))
+
 (in-package :cl-user)

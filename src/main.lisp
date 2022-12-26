@@ -2,8 +2,6 @@
   (:import-from :bordeaux-threads :make-thread)
   (:use
    :cl
-   :cl-telegram-bot
-   :cl-telegram-bot/message
    :tel-bot.head
    :tel-bot.bot
    :tel-bot.task
@@ -14,28 +12,19 @@
    :stop))
 (in-package :tel-bot)
 
-(cl-telegram-bot/network:set-proxy
- (assoc-value (get-configs)
-              "proxy"))
-
-(defvar *bot* (make-manager-bot (assoc-value (get-configs)
-                                             "botToken") :debug t))
+(create-bot)
 
 (add-task #'(lambda ()
               (mapcar #'(lambda (chat-id)
-                          (send-text *bot*
-                                     chat-id
+                          (send-text chat-id
                                      "大家晚安哟")
-                          (send-text *bot*
-                                     chat-id
+                          (send-text chat-id
                                      (wanan)))
                       (get-manager-group))
               (when (get-master-chat)
-                (send-text *bot*
-                           (get-master-chat)
+                (send-text (get-master-chat)
                            "主人晚安")
-                (send-text *bot*
-                           (get-master-chat)
+                (send-text (get-master-chat)
                            (wanan))))
           "goodnight"
           (list 23 00 :step-mintue 20))
@@ -43,19 +32,15 @@
 
 (add-task #'(lambda ()
               (mapcar #'(lambda (chat-id)
-                          (send-text *bot*
-                                     chat-id
+                          (send-text chat-id
                                      "大家早安哟")
-                          (send-text *bot*
-                                     chat-id
+                          (send-text chat-id
                                      (zaoan)))
                       (get-manager-group))
               (when (get-master-chat)
-                (send-text *bot*
-                           (get-master-chat)
+                (send-text (get-master-chat)
                            "主人早安")
-                (send-text *bot*
-                           (get-master-chat)
+                (send-text (get-master-chat)
                            (zaoan))))
           "goodmorning"
           (list 8 0 :step-mintue 20))
@@ -99,8 +84,8 @@
 
 (defun start ()
   (base-config)
-  (start-processing *bot*)
+  (start-bot)
   (make-thread #'run))
 
 (defun stop ()
-  (stop-processing *bot*))
+  (stop-bot))
