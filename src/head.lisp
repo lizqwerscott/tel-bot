@@ -28,7 +28,8 @@
    :load-json-file
    :save-json-file
 
-   :get-configs))
+   :get-configs
+   :include-words))
 (in-package :tel-bot.head)
 
 (defvar *patron* (make-instance 'patron:patron
@@ -138,5 +139,14 @@
 
 (defun get-configs ()
   *configs*)
+
+(defun include-words (text keywords &optional res)
+  (if keywords
+      (include-words text
+                     (cdr keywords)
+                     (or res
+                         (contains? (car keywords)
+                                    text)))
+      res))
 
 (in-package :cl-user)

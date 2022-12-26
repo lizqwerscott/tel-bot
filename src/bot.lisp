@@ -37,14 +37,10 @@
 (defun stop-bot ()
   (stop-processing *bot*))
 
-;; (defmethod on-message ((bot manager-bot) text)
-;;   )
-
 ;; Help command
 (defparameter *command-infos* (make-hash-table :test #'eql))
 
-(defmethod on-command ((bot manager-bot) (command (eql :help)) text)
-  (declare (ignorable text))
+(defun help ()
   (let ((help-text nil))
     (maphash #'(lambda (command info)
                  (setq help-text
@@ -52,7 +48,21 @@
                                (list
                                 (format nil "/~(~A~): ~A" command info)))))
              *command-infos*)
-    (reply (format nil "命令介绍:~%~{~A~%~}" help-text))))
+    (format nil "命令介绍:~%~{~A~%~}" help-text)))
+
+(defmethod on-message ((bot manager-bot) text)
+  (if (and (include-words text
+                          '("初音"
+                            "miku"
+                            "初音未来"))
+           (include-words text
+                          '("会" "懂" "能做"))
+           (include-words text
+                          '("什么")))
+      (reply (help))))
+
+(defmethod on-command ((bot manager-bot) (command (eql :help)) text)
+  (reply (help)))
 
 (defun add-command-info (command info)
   (setf (gethash command *command-infos*)
@@ -81,7 +91,9 @@
 
 (defun send-text (chat-id text)
   (send-message *bot*
-                (cl-telegram-bot/chat:get-chat-by-id *bot* chat-id)
+                (if (numberp chat-id)
+                    (cl-telegram-bot/chat:get-chat-by-id *bot* chat-id)
+                    chat-id)
                 text))
 
 (defparameter *master-chat* nil)
@@ -126,11 +138,21 @@
 (defcommand
     (:managergroup "添加此会话为机器人管理的会话" chat text)
     (declare (ignorable text))
-    (setf *manager-group*
-        (append *manager-group*
-                (list
-                 (cl-telegram-bot/chat:get-chat-id
-                  (get-current-chat)))))
+    (let ((chat-id (cl-telegram-bot/chat:get-chat-id chat)))
+      (if (find chat-id *manager-group*)
+          (send-text chat "这个会话已经添加过了哟")
+          (setf *manager-group*
+                (append *manager-group*
+                        (list chat-id)))))
+    (save-manager-group)
     (reply (format nil "添加成功:~A" (get-manager-group))))
+
+(defcommand
+    (:groups "列出机器人管理的会话" chat text)
+    (declare (ignorable text))
+    (reply
+     (format nil
+             "会话列表：~%~{~A~}"
+             *manager-group*)))
 
 (in-package :cl-user)
