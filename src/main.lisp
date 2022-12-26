@@ -24,10 +24,10 @@
 (add-task #'(lambda ()
               (mapcar #'(lambda (chat-id)
                           (send-text *bot*
-                                     (car (get-manager-group))
+                                     chat-id
                                      "大家晚安哟")
                           (send-text *bot*
-                                     (car (get-manager-group))
+                                     chat-id
                                      (wanan)))
                       (get-manager-group))
               (when (get-master-chat)
@@ -44,10 +44,10 @@
 (add-task #'(lambda ()
               (mapcar #'(lambda (chat-id)
                           (send-text *bot*
-                                     (car (get-manager-group))
+                                     chat-id
                                      "大家早安哟")
                           (send-text *bot*
-                                     (car (get-manager-group))
+                                     chat-id
                                      (zaoan)))
                       (get-manager-group))
               (when (get-master-chat)
