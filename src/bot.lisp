@@ -73,7 +73,7 @@
 
 (defun send-text (bot chat-id text)
   (send-message bot
-                (cl-telegram-bot/chat:get-chat-by-id chat-id)
+                (cl-telegram-bot/chat:get-chat-by-id bot chat-id)
                 text))
 
 (in-package :cl-user)
