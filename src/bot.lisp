@@ -1,5 +1,5 @@
 (defpackage tel-bot.bot
-  (:use :cl :cl-telegram-bot :cl-telegram-bot/message :tel-bot.head)
+  (:use :cl :cl-telegram-bot :tel-bot.head)
   (:export
 
    :create-bot
@@ -14,7 +14,9 @@
    :get-master-chat
    :get-manager-group
 
-   :send-text))
+   :send-text
+   :send-picture
+   :send-audio))
 (in-package :tel-bot.bot)
 
 (defbot manager-bot)
@@ -86,15 +88,29 @@
   `(progn
     (add-command-info ,name ,info)
     (defmethod on-command ((bot manager-bot) (command (eql ,name)) ,text-name)
-     (let ((,chat-name (get-current-chat)))
+     (let ((,chat-name (cl-telegram-bot/message:get-current-chat)))
        ,@body))))
 
 (defun send-text (chat-id text)
-  (send-message *bot*
-                (if (numberp chat-id)
-                    (cl-telegram-bot/chat:get-chat-by-id *bot* chat-id)
-                    chat-id)
-                text))
+  (cl-telegram-bot/message:send-message *bot*
+                                        (if (numberp chat-id)
+                                            (cl-telegram-bot/chat:get-chat-by-id *bot* chat-id)
+                                            chat-id)
+                                        text))
+
+(defun send-picture (chat-id url)
+  (cl-telegram-bot/message:send-photo *bot*
+                                      (if (numberp chat-id)
+                                          (cl-telegram-bot/chat:get-chat-by-id *bot* chat-id)
+                                          chat-id)
+                                      url))
+
+(defun send-audio (chat-id url)
+  (cl-telegram-bot/message:send-audio *bot*
+                                      (if (numberp chat-id)
+                                          (cl-telegram-bot/chat:get-chat-by-id *bot* chat-id)
+                                          chat-id)
+                                      url))
 
 (defparameter *master-chat* nil)
 (defparameter *manager-group* nil)

@@ -20,6 +20,7 @@
                  (:file "bot")
                  (:file "task")
                  (:file "text")
+                 (:file "music")
                  (:file "minecraft")
                  (:file "main"))))
   :description ""

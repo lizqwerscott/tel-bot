@@ -46,7 +46,6 @@
           (list 8 0 :step-mintue 20))
 (start-task "goodmorning")
 
-
 (defun run ()
   (format t "Start patron...~%")
   (start-patron *patron*)

@@ -2,7 +2,7 @@
   (:import-from :alexandria :switch)
   (:import-from :alexandria :iota)
   (:import-from :str :join)
-  (:use :cl :tel-bot.head :tel-bot.bot :tel-bot.web :cl-telegram-bot :cl-telegram-bot/message))
+  (:use :cl :tel-bot.head :tel-bot.bot :tel-bot.web :cl-telegram-bot))
 (in-package :tel-bot.minecraft)
 
 (defvar *key* (assoc-value (get-configs)
@@ -165,7 +165,7 @@
           (let ((instance (search-instance index)))
             (if instance
                 (progn
-                  (send-message bot (get-current-chat) "正在重新启动实例......")
+                  (send-text chat "正在重新启动实例......")
                   (let ((res (manager-instance-command "restart" (second (second instance)) (first instance))))
                     (reply
                      (if (listp res)
@@ -183,7 +183,7 @@
           (let ((instance (search-instance index)))
             (if instance
                 (progn
-                  (send-message bot (get-current-chat) "正在强制关闭实例......")
+                  (send-text chat "正在强制关闭实例......")
                   (let ((res (manager-instance-command "kill" (second (second instance)) (first instance))))
                     (reply
                      (if (listp res)

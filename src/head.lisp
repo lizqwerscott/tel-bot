@@ -5,6 +5,7 @@
   (:export
    :*patron*
    :run-shell
+   :assoc-s
    :assoc-value
    :assoc-value-l
    :assoc-v
@@ -17,6 +18,7 @@
    :generate-path
    :when-bind
    :last1
+   :append1
    :to-json-a
    :now-today
 
@@ -49,11 +51,12 @@
 (defun last1 (lst)
   (car (last lst)))
 
-;; (defun assoc-value (plist key)
-;;   (cdr (assoc key plist :test #'string=)))
+(defun append1 (lst item)
+  (append lst
+          (list item)))
 
-(defun assoc-v (plist key)
-  (cdr (assoc key plist)))
+(defun assoc-s (plist key)
+  (assoc key plist :test #'string=))
 
 (defun assoc-value (plist keys)
   (if (listp keys)
