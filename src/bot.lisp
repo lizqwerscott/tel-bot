@@ -136,7 +136,7 @@
 (defun save-manager-group ()
   (save-json-file (merge-pathnames "groups.json"
                                    (get-data-dir))
-                  (to-json-a `(("groups" . ,*master-chat*)))))
+                  (to-json-a `(("groups" . ,*manager-group*)))))
 
 (defun load-master-group ()
   (let ((file (merge-pathnames "groups.json"
