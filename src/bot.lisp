@@ -1,4 +1,10 @@
 (defpackage tel-bot.bot
+  (:import-from :cl-telegram-bot/message
+                :get-current-chat)
+  (:import-from :cl-telegram-bot/chat
+                :get-chat-id)
+  (:import-from :cl-telegram-bot/chat
+                :get-chat-by-id)
   (:use :cl :cl-telegram-bot :tel-bot.head)
   (:export
 
@@ -16,7 +22,10 @@
 
    :send-text
    :send-picture
-   :send-audio))
+   :send-audio
+
+   :reply-text
+   :reply-audio))
 (in-package :tel-bot.bot)
 
 (defbot manager-bot)
@@ -88,29 +97,52 @@
   `(progn
     (add-command-info ,name ,info)
     (defmethod on-command ((bot manager-bot) (command (eql ,name)) ,text-name)
-     (let ((,chat-name (cl-telegram-bot/message:get-current-chat)))
+     (let ((,chat-name (get-current-chat)))
        ,@body))))
 
 (defun send-text (chat-id text)
   (cl-telegram-bot/message:send-message *bot*
                                         (if (numberp chat-id)
-                                            (cl-telegram-bot/chat:get-chat-by-id *bot* chat-id)
+                                            (get-chat-by-id *bot* chat-id)
                                             chat-id)
                                         text))
 
 (defun send-picture (chat-id url)
   (cl-telegram-bot/message:send-photo *bot*
                                       (if (numberp chat-id)
-                                          (cl-telegram-bot/chat:get-chat-by-id *bot* chat-id)
+                                          (get-chat-by-id *bot* chat-id)
                                           chat-id)
                                       url))
 
-(defun send-audio (chat-id url)
-  (cl-telegram-bot/message:send-audio *bot*
-                                      (if (numberp chat-id)
-                                          (cl-telegram-bot/chat:get-chat-by-id *bot* chat-id)
-                                          chat-id)
-                                      url))
+(defun send-audio (chat-id audio title performer)
+  (if (pathnamep audio)
+      (run-shell
+       (format nil
+               "proxychains4 python ~A ~A ~A ~A ~A ~A"
+               (merge-pathnames "scripts/send_audio.py"
+                                (asdf:system-source-directory :tel-bot))
+               (assoc-value (get-configs)
+                            "botToken")
+               (if (numberp chat-id)
+                   chat-id
+                   (get-chat-id chat-id))
+               audio
+               title
+               performer))
+      (cl-telegram-bot/message:send-audio *bot*
+                                          (if (numberp chat-id)
+                                              chat-id
+                                              (get-chat-by-id chat-id))
+                                          url)))
+
+(defun reply-text (text)
+  (send-text (get-current-chat) text))
+
+(defun reply-audio (audio title performer)
+  (send-audio (get-current-chat)
+              audio
+              title
+              performer))
 
 (defparameter *master-chat* nil)
 (defparameter *manager-group* nil)
@@ -156,12 +188,13 @@
     (declare (ignorable text))
     (let ((chat-id (cl-telegram-bot/chat:get-chat-id chat)))
       (if (find chat-id *manager-group* :test #'=)
-          (send-text chat "这个会话已经添加过了哟")
-          (setf *manager-group*
+          (reply "这个会话已经添加过了哟")
+          (progn
+            (setf *manager-group*
                 (append *manager-group*
-                        (list chat-id)))))
-    (save-manager-group)
-    (reply (format nil "添加成功:~A" (get-manager-group))))
+                        (list chat-id)))
+            (save-manager-group)
+            (reply (format nil "添加成功:~A" (get-manager-group)))))))
 
 (defcommand
     (:groups "列出机器人管理的会话" chat text)

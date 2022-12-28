@@ -127,7 +127,7 @@
         (let ((instance (search-instance index)))
           (if instance
               (progn
-                (send-text chat "正在启动实例......")
+                (reply-text "正在启动实例......")
                 (let ((res (manager-instance-command "open" (second (second instance)) (first instance))))
                   (reply
                    (if (listp res)
@@ -146,7 +146,7 @@
         (let ((instance (search-instance index)))
           (if instance
               (progn
-                (send-text chat "正在关闭实例......")
+                (reply-text "正在关闭实例......")
                 (let ((res (manager-instance-command "stop" (second (second instance)) (first instance))))
                   (reply
                    (if (listp res)
@@ -165,7 +165,7 @@
           (let ((instance (search-instance index)))
             (if instance
                 (progn
-                  (send-text chat "正在重新启动实例......")
+                  (reply-text "正在重新启动实例......")
                   (let ((res (manager-instance-command "restart" (second (second instance)) (first instance))))
                     (reply
                      (if (listp res)
@@ -183,7 +183,7 @@
           (let ((instance (search-instance index)))
             (if instance
                 (progn
-                  (send-text chat "正在强制关闭实例......")
+                  (reply-text "正在强制关闭实例......")
                   (let ((res (manager-instance-command "kill" (second (second instance)) (first instance))))
                     (reply
                      (if (listp res)

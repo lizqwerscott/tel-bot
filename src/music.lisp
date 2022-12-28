@@ -22,8 +22,9 @@
 (defun get-url (id)
   (assoc-value (car
                 (handle-data (web-get *address*
-                                      "song/url/vr"
-                                      :args `(("id" . ,id))
+                                      "song/url/v1"
+                                      :args `(("id" . ,id)
+                                              ("level" . "standard"))
                                       :jsonp t)
                              "data"))
                "url"))
@@ -54,24 +55,56 @@
                      ("limit" . ,limit))
              :jsonp t))))
 
+;; (defvar *temp* (search-song "我的悲伤是水做的"))
+
+(defun make-file (name extension path)
+  (merge-pathnames (format nil "~A.~A" name extension)
+                   path))
+
+(defun download-song (song &optional (path (ensure-directories-exist
+                                            (merge-pathnames "songs/"
+                                                             (get-data-dir)))))
+  (let ((finish-path (make-file (assoc-value song "name")
+                                "mp3"
+                                path)))
+    (when (not (probe-file finish-path))
+      (let ((song-path (make-file (format nil "~A-last" (assoc-value song "name"))
+                                  "mp3"
+                                  path))
+            (cover-path (make-file (assoc-value song "name")
+                                   "jpg"
+                                   path)))
+        (run-shell
+         (format nil
+                 "curl -L ~A -o ~A"
+                 (assoc-value song "url")
+                 song-path))
+        (run-shell
+         (format nil
+                 "curl -L ~A -o ~A"
+                 (assoc-value song "picUrl")
+                 cover-path))
+        (run-shell
+         (format nil
+                 "lame --ti ~A ~A ~A"
+                 cover-path
+                 song-path
+                 finish-path))
+        (delete-file song-path)
+        (delete-file cover-path)))
+    (list (truename finish-path)
+          (assoc-value song "name")
+          (car (assoc-value song "person")))))
+
 (defcommand
     (:music "搜索网易云的歌曲" chat text)
     (handler-case
         (let ((res (search-song (str:trim text))))
+          (reply-text "正在寻找歌曲中......")
           (if res
-              (dolist (song res)
-                (let ((url (assoc-value song "url")))
-                  (when url
-                    (send-text chat
-                               (format nil
-                                       "标题: ~A~%歌手:~{~A~}"
-                                       (assoc-value song "name")
-                                       (assoc-value song "person")))
-                    (send-picture chat
-                                  (assoc-value song "picUrl"))
-                    (send-audio chat
-                                url))
-                  (sleep 1)))
+              (dolist (song (mapcar #'download-song res))
+                (reply-audio (first song) (second song) (third song))
+                (sleep 0.5))
               (reply "没有找到任何歌曲哟")))
       (error (c)
         (reply (format nil "[Error]: ~A" c)))))
