@@ -45,7 +45,7 @@
           (assoc-value result "songs")))
 
 
-(defun search-song (keywords &optional (limit 1))
+(defun search-song (keywords &optional (limit 2))
   (get-info-song
    (handle-data
     (web-get *address*
