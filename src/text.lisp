@@ -3,7 +3,9 @@
   (:export
    :get-random-text
    :zaoan
-   :wanan))
+   :wanan
+   :holidays
+   :english-line))
 (in-package :tel-bot.text)
 
 (defvar *tian-address* "api.tianapi.com")
@@ -32,13 +34,28 @@
 
 (defun wanan ()
   (get-zw "wanan"))
-(handler-case
-      (reply (get-random-text "joke"))
-    (error (c)
-))
+
 ;; joke sao love
 (defun get-random-text (command)
   (web-get "api.vvhan.com" (format nil "api/~A" command)))
+
+(defun holidays ()
+  (car
+   (handle-tianx
+    (web-get *tian-address*
+             "jiejiari/index"
+             :args `(("key" . ,*tianx-key*)
+                     ("date" . ,(today-format))
+                     ("mode" . 1))
+             :jsonp t))))
+
+(defun english-line ()
+  (car
+   (handle-tianx
+    (web-get *tian-address*
+             "everyday/index"
+             :args `(("key" . ,*tianx-key*))
+             :jsonp t))))
 
 (defcommand
     (:love "发送一段情话" chat text)

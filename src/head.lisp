@@ -25,7 +25,9 @@
    :last1
    :append1
    :to-json-a
+
    :now-today
+   :today-format
 
    :get-source-dir
    :set-source-dir
@@ -118,6 +120,13 @@
                       (timestamp-day now-time)
                       (timestamp-month now-time)
                       (timestamp-year now-time))))
+
+(defun today-format (&optional (is-chinesep nil))
+  (format-timestring nil
+                     (today)
+                     :format (if is-chinesep
+                                 '(:year "年" :month "月" :day "日")
+                                 '(:year "-" :month "-" :day))))
 
 (defun get-source-dir ()
   *source-dir*)
