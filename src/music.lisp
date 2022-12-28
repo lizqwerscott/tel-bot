@@ -33,6 +33,7 @@
   (format t "len:~A~%" (assoc-value result "songCount"))
   (mapcar #'(lambda (song)
               (list (assoc-s song "name")
+                    (assoc-s song "id")
                     (let ((id (assoc-value song "id")))
                       `("url" . ,(when (check-music id)
                                    (get-url id))))
@@ -45,7 +46,7 @@
           (assoc-value result "songs")))
 
 
-(defun search-song (keywords &optional (limit 2))
+(defun search-song (keywords &optional (limit 3))
   (get-info-song
    (handle-data
     (web-get *address*
@@ -57,53 +58,58 @@
 
 ;; (defvar *temp* (search-song "我的悲伤是水做的"))
 
-(defun make-file (name extension path)
-  (merge-pathnames (format nil "~A.~A" name extension)
-                   path))
-
-(defun download-song (song &optional (path (ensure-directories-exist
-                                            (merge-pathnames "songs/"
-                                                             (get-data-dir)))))
-  (let ((finish-path (make-file (assoc-value song "name")
-                                "mp3"
-                                path)))
-    (when (not (probe-file finish-path))
-      (let ((song-path (make-file (format nil "~A-last" (assoc-value song "name"))
-                                  "mp3"
-                                  path))
-            (cover-path (make-file (assoc-value song "name")
-                                   "jpg"
-                                   path)))
-        (run-shell
-         (format nil
-                 "curl -L ~A -o ~A"
-                 (assoc-value song "url")
-                 song-path))
-        (run-shell
-         (format nil
-                 "curl -L ~A -o ~A"
-                 (assoc-value song "picUrl")
-                 cover-path))
+(defun fix-song (cover-path song-path finish-path)
+  (handler-case
+      (progn
         (run-shell
          (format nil
                  "lame --ti ~A ~A ~A"
                  cover-path
                  song-path
                  finish-path))
-        (delete-file song-path)
-        (delete-file cover-path)))
-    (list (truename finish-path)
-          (assoc-value song "name")
-          (car (assoc-value song "person")))))
+        finish-path)
+    (error (c)
+      (format t "[fix-song Error]: ~A~%" c)
+      nil)))
+
+(defun download-song (song &optional (path (ensure-directories-exist
+                                            (merge-pathnames "songs/"
+                                                             (get-data-dir)))))
+  (when (assoc-value song "url")
+    (let ((finish-path (make-file (assoc-value song "id")
+                                  "mp3"
+                                  path)))
+      (if  (probe-file finish-path)
+           (list (truename finish-path)
+                 (assoc-value song "name")
+                 (car (assoc-value song "person")))
+           (let ((song-path (make-file (format nil "~A-last" (assoc-value song "id"))
+                                       "mp3"
+                                       path))
+                 (cover-path (make-file (assoc-value song "id")
+                                        "jpg"
+                                        path)))
+             (when (and (download-url (assoc-value song "url")
+                                      song-path)
+                        (download-url (assoc-value song "picUrl")
+                                      cover-path)
+                        (fix-song cover-path song-path finish-path))
+               (delete-file song-path)
+               (delete-file cover-path)
+               (list (truename finish-path)
+                     (assoc-value song "name")
+                     (car (assoc-value song "person")))))))))
 
 (defcommand
     (:music "搜索网易云的歌曲" chat text)
     (handler-case
         (let ((res (search-song (str:trim text))))
           (reply-text "正在寻找歌曲中......")
+          (format t "songs: ~A~%" res)
           (if res
               (dolist (song (mapcar #'download-song res))
-                (reply-audio (first song) (second song) (third song))
+                (when song
+                  (reply-audio (first song) (second song) (third song)))
                 (sleep 0.5))
               (reply "没有找到任何歌曲哟")))
       (error (c)

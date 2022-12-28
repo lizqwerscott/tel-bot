@@ -31,7 +31,10 @@
    :save-json-file
 
    :get-configs
-   :include-words))
+   :include-words
+
+   :make-file
+   :download-url))
 (in-package :tel-bot.head)
 
 (defvar *patron* (make-instance 'patron:patron
@@ -151,5 +154,22 @@
                          (contains? (car keywords)
                                     text)))
       res))
+
+(defun make-file (name extension path)
+  (merge-pathnames (format nil "~A.~A" name extension)
+                   path))
+
+(defun download-url (url save-path)
+  (handler-case
+      (progn
+        (run-shell
+         (format nil
+                 "curl -L ~A -o ~A"
+                 url
+                 save-path))
+        save-path)
+    (error (c)
+      (format t "[download-url Error]: ~A~%" c)
+      nil)))
 
 (in-package :cl-user)

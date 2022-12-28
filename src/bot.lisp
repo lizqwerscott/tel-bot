@@ -118,7 +118,7 @@
   (if (pathnamep audio)
       (run-shell
        (format nil
-               "proxychains4 python ~A ~A ~A ~A ~A ~A"
+               "proxychains4 python ~A ~A ~A ~A '~A' '~A'"
                (merge-pathnames "scripts/send_audio.py"
                                 (asdf:system-source-directory :tel-bot))
                (assoc-value (get-configs)
