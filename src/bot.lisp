@@ -142,7 +142,7 @@
   (let ((file (merge-pathnames "groups.json"
                                (get-data-dir))))
     (when (probe-file file)
-      (setf *master-chat*
+      (setf *manager-group*
             (assoc-value (load-json-file file)
                          "groups")) )))
 
