@@ -4,6 +4,7 @@
   (:export
    :generate-url
    :web-get
+   :web-get-url
    :web-post))
 (in-package :tel-bot.web)
 

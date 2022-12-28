@@ -12,7 +12,8 @@
                "bordeaux-threads"
                "babel"
                "patron"
-               "cl-telegram-bot")
+               "cl-telegram-bot"
+               "random-state")
   :components ((:module "src"
                 :components
                 ((:file "head")
@@ -21,6 +22,7 @@
                  (:file "task")
                  (:file "text")
                  (:file "music")
+                 (:file "picture")
                  (:file "minecraft")
                  (:file "main"))))
   :description ""

@@ -1,6 +1,8 @@
 (defpackage :tel-bot.head
   (:import-from :jonathan :to-json)
   (:import-from :uiop :run-program)
+  (:import-from :random-state :make-generator)
+  (:import-from :random-state :random-int)
   (:use :common-lisp :yason :babel :str :local-time)
   (:export
    :*patron*
@@ -9,6 +11,9 @@
    :assoc-value
    :assoc-value-l
    :assoc-v
+
+   :random-int-r
+   :random-select-list
 
    :split-s
    :string-merge
@@ -75,6 +80,15 @@
     (mapcar #'(lambda (key)
                 (assoc-value plist key))
             keys)))
+
+(defun random-int-r (max)
+  (let ((generator (random-state:make-generator :mersenne-twister-32 (timestamp-to-universal (now)))))
+    (random-state:random-int generator 0 max)))
+
+(defun random-select-list (lst)
+  (when (listp lst)
+    (let ((select (random-int-r (- (length lst) 1))))
+      (elt lst select))))
 
 (defun split-s (str &optional (deleimiter " "))
   (split deleimiter str))
