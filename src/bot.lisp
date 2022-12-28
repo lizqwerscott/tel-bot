@@ -138,7 +138,7 @@
                                    (get-data-dir))
                   (to-json-a `(("groups" . ,*manager-group*)))))
 
-(defun load-master-group ()
+(defun load-manager-group ()
   (let ((file (merge-pathnames "groups.json"
                                (get-data-dir))))
     (when (probe-file file)
@@ -146,7 +146,7 @@
             (assoc-value (load-json-file file)
                          "groups")) )))
 
-(load-master-group)
+(load-manager-group)
 
 (defun get-manager-group ()
   *manager-group*)
@@ -155,7 +155,7 @@
     (:managergroup "添加此会话为机器人管理的会话" chat text)
     (declare (ignorable text))
     (let ((chat-id (cl-telegram-bot/chat:get-chat-id chat)))
-      (if (find chat-id *manager-group*)
+      (if (find chat-id *manager-group* :test #'=)
           (send-text chat "这个会话已经添加过了哟")
           (setf *manager-group*
                 (append *manager-group*
