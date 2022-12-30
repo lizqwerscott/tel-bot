@@ -12,13 +12,18 @@
 
 (defparameter *instances* nil)
 
-(defun instance-status (status)
-  (switch (status :test #'=)
+(defun instance-status (instance)
+  (switch ((elt instance 2) :test #'=)
     (-1 "状态未知")
     (0 "已停止")
     (1 "正在停止")
     (2 "正在启动")
     (3 "正在运行")))
+
+(defun instance-player (instance)
+  (if (stringp (elt instance 3))
+      (parse-integer (elt instance 3))
+      0))
 
 (defun handle-data (data)
   (if (= 200 (assoc-value data "status"))
@@ -74,11 +79,8 @@
                                 "实例(~A)~d: ~A, ~d个玩家"
                                 (car instance)
                                 index
-                                (instance-status
-                                 (elt instance 2))
-                                (if (stringp (elt instance 3))
-                                    (elt instance 3)
-                                    0)))
+                                (instance-status instance)
+                                (instance-player instance)))
                     (car (cdr (car *instances*)))
                     (iota (length (car (cdr (car *instances*))))
                           :start 1))))
