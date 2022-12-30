@@ -103,9 +103,6 @@
      (dex:http-request-failed (e)
        (yason:parse (dex:response-body e))))))
 
-(defun test ()
-  (manager-instance-command "open" "3bcba904a6974cdf84eeba6c3e8f14d5" "6ffeaca6c142404299e46c43b2054d41"))
-
 (defcommand
     (:mcstate "输出mc服务器状态" chat text)
     (declare (ignorable text))

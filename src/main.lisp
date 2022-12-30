@@ -5,7 +5,6 @@
    :tel-bot.head
    :tel-bot.bot
    :tel-bot.task
-   :patron
    :tel-bot.text
    :tel-bot.picture)
   (:export
@@ -67,7 +66,7 @@
 
 (defun run ()
   (format t "Start patron...~%")
-  (start-patron *patron*)
+  (start-patron)
   (do ((i 0 (+ i 1)))
       (nil i)
     ;; reset all day task
@@ -81,13 +80,11 @@
                  (apply #'time-in
                         (apply #'get-time-range
                                (task-time task))))
-        (submit-job *patron*
-                    (make-instance 'patron:job
-                                   :function (task-func task)))
+        (creat-job (task-func task))
         (setf (task-runp task) t)))
     (sleep 1))
   (format t "Stop patron...~%")
-  (stop-patron *patron* :wait t))
+  (stop-patron))
 
 (defun base-config ()
   (when (not (probe-file (get-source-dir)))

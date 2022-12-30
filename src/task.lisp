@@ -1,5 +1,5 @@
 (defpackage :tel-bot.task
-  (:use :common-lisp :tel-bot.head :tel-bot.bot :local-time :patron)
+  (:use :common-lisp :tel-bot.head :tel-bot.bot :local-time)
   (:export
    :task-name
    :task-time

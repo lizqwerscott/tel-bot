@@ -5,7 +5,9 @@
   (:import-from :random-state :random-int)
   (:use :common-lisp :yason :babel :str :local-time)
   (:export
-   :*patron*
+   :start-patron
+   :stop-patron
+   :creat-job
    :run-shell
    :assoc-s
    :assoc-value
@@ -48,6 +50,17 @@
                                 :worker-capacity 3
                                 :job-capacity 32
                                 :worker-timeout-duration 600))
+
+(defun start-patron ()
+  (patron:start-patron *patron*))
+
+(defun stop-patron ()
+  (patron:stop-patron *patron* :wait t))
+
+(defun create-job (fun)
+  (patron:submit-job *patron*
+                     (make-instance 'patron:job
+                                    :function fun)))
 
 (defparameter *source-dir* #P"~/tel_bot/")
 
