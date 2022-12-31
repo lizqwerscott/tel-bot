@@ -7,7 +7,7 @@
   (:export
    :start-patron
    :stop-patron
-   :creat-job
+   :create-job
    :run-shell
    :assoc-s
    :assoc-value
