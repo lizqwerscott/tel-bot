@@ -1,8 +1,8 @@
 (defpackage tel-bot.picture
   (:use :cl :tel-bot.head :tel-bot.web :tel-bot.bot :cl-telegram-bot)
   (:export
-   :random-picture
-   ))
+   :random-picture))
+
 (in-package :tel-bot.picture)
 
 (defun loli-get (&optional (switch "acg"))
@@ -46,8 +46,11 @@ switch have two parameter: (acg) (bg)"
       (format t "[syxz get picture Error]: ~A~%" c)
       nil)))
 
-(defun random-picture ()
-  (funcall (random-select-list (list #'loli-get #'vvhan-get #'syxz-get #'hanxing-get))))
+(defun random-picture (&optional (webs (list #'loli-get #'vvhan-get #'syxz-get #'hanxing-get)))
+  (when (listp webs)
+    (let ((select (random-select-list webs)))
+      (if-return (funcall select)
+        (random-picture (remove select webs))))))
 
 (defcommand
     (:picture "随机获取一张图片" chat text)

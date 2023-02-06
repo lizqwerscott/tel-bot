@@ -24,6 +24,7 @@
 
    :generate-path
    :when-bind
+   :if-return
    :last1
    :append1
    :to-json-a
@@ -71,6 +72,13 @@
   `(let ((,var ,expr))
      (when ,var
        ,@body)))
+
+(defmacro if-return (body &body (then-body))
+  (let ((g (gensym)))
+    `(let ((,g ,body))
+       (if ,g
+         ,g
+         ,then-body))))
 
 (defun last1 (lst)
   (car (last lst)))
@@ -194,7 +202,7 @@
 
 (defun include-words? (text keywords &optional res)
   (if keywords
-      (include-words text
+      (include-words? text
                      (cdr keywords)
                      (or res
                          (contains? (car keywords)
