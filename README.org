@@ -1,5 +1,16 @@
-* Tel-Bot 
+* Tel-Bot
 
 ** Usage
-
+#+begin_src bash
+  rlwrap sbcl --load start.lisp
+#+end_src
 ** Installation
+*** Requirement
+#+begin_src bash
+  git clone https://github.com/lizqwerscott/cl-telegram-bot.git
+#+end_src
+*** Clone
+#+begin_src bash
+  git clone https://github.com/lizqwerscott/tel-bot.git
+#+end_src
+
