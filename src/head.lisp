@@ -185,11 +185,11 @@
 
 (defun start-with-words? (text keywords &optional res)
   (if keywords
-      (include-words text
-                     (cdr keywords)
-                     (or res
-                        (starts-with? (car keywords)
-                                     text)))
+      (start-with-words? text
+                         (cdr keywords)
+                         (or res
+                            (starts-with? (car keywords
+                                              text))))
       res))
 
 (defun include-words? (text keywords &optional res)
