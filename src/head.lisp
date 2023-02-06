@@ -40,7 +40,8 @@
    :save-json-file
 
    :get-configs
-   :include-words
+   :include-words?
+   :start-with-words?
 
    :make-file
    :download-url))
@@ -182,7 +183,16 @@
 (defun get-configs ()
   *configs*)
 
-(defun include-words (text keywords &optional res)
+(defun start-with-words? (text keywords &optional res)
+  (if keywords
+      (include-words text
+                     (cdr keywords)
+                     (or res
+                        (starts-with? (car keywords)
+                                     text)))
+      res))
+
+(defun include-words? (text keywords &optional res)
   (if keywords
       (include-words text
                      (cdr keywords)

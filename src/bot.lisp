@@ -63,15 +63,15 @@
     (format nil "命令介绍:~%~{~A~%~}" help-text)))
 
 (defmethod on-message ((bot manager-bot) text)
-  (if (and (include-words text
-                          '("初音"
-                            "miku"
-                            "初音未来"))
-           (include-words text
-                          '("会" "懂" "能做"))
-           (include-words text
-                          '("什么")))
-      (reply (help))))
+  (let ((words (str:trim text)))
+    (format t "message: ~A~%" words)
+    (when (start-with-words? words
+                             '("初音" "miku" "初音未来" "@kk_manage_bot"))
+      (if (and (include-words? text
+                             '("会" "懂" "能做"))
+             (include-words? text
+                           '("什么")))
+          (reply (help))))))
 
 (defmethod on-command ((bot manager-bot) (command (eql :help)) text)
   (reply (help)))
@@ -162,7 +162,7 @@
     (when (probe-file file)
       (setf *master-chat*
             (assoc-value (load-json-file file)
-                         "master")) )))
+                         "master")))))
 
 (defun get-master-chat ()
   *master-chat*)
@@ -180,7 +180,7 @@
     (when (probe-file file)
       (setf *manager-group*
             (assoc-value (load-json-file file)
-                         "groups")) )))
+                         "groups")))))
 
 (load-manager-group)
 

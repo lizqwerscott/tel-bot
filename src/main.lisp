@@ -47,11 +47,11 @@
 (defun zaoan-fun ()
   (let ((text (zaoan-f)))
     (mapcar #'(lambda (chat-id)
-              (send-text chat-id
-                         text)
-              (send-picture chat-id
-                            (random-picture)))
-          (get-manager-group))))
+                (send-text chat-id
+                           text)
+                (send-picture chat-id
+                              (random-picture)))
+            (get-manager-group))))
 
 (add-task #'(lambda ()
               (zaoan-fun)
