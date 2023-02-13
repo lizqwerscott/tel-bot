@@ -196,8 +196,8 @@
       (start-with-words? text
                          (cdr keywords)
                          (or res
-                            (starts-with? (car keywords
-                                              text))))
+                            (starts-with? (car keywords)
+                                          text)))
       res))
 
 (defun include-words? (text keywords &optional res)
