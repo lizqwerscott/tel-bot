@@ -93,29 +93,56 @@
     (error (c)
       (format t "Not have ~A instance" index))))
 
-(defun manager-instance-command (command uuid remote-uuid)
+(defun manager-instance-command (command uuid remote-uuid &optional (other-args nil))
   (handle-data
    (handler-case
        (web-get *address*
                 (format nil "api/protected_instance/~A" command)
-                :args `(("apikey" . ,*key*)
-                        ("remote_uuid" . ,remote-uuid)
-                        ("uuid" . ,uuid))
+                :args (append `(("apikey" . ,*key*)
+                                ("remote_uuid" . ,remote-uuid)
+                                ("uuid" . ,uuid))
+                              other-args)
                 :jsonp t)
      (dex:http-request-failed (e)
        (yason:parse (dex:response-body e))))))
+
+(defun instance-send-command (command instance)
+  (manager-instance-command "command"
+                            (second (second instance))
+                            (first instance)
+                            `(("command" . ,command))))
+
+(defun instance-get-log (uuid remote-uuid)
+  (manager-instance-command "outputlog"
+                            uuid
+                            remote-uuid))
+
+(defun test ()
+  (let ((instance (search-instance 1)))
+    (instance-send-command "/say 👋"
+                           instance)))
+
+;; (defun test-1 (&optional (n 10))
+;;   (let ((instance (search-instance 1)))
+;;     (let ((lines (str:lines (instance-get-log (second (second instance)) (car instance)))))
+;;       (dotimes (i n)
+;;         (format t "~A~%" (elt lines (- (length lines) i 1)))))
+;;     (instance-get-log (second (second instance)) (car instance))))
+    ;; (let ((strs (instance-get-log (second (second instance)) (car instance))))
+    ;;   (with-open-file (out "~/a.txt" :direction :output :if-does-not-exist :create)
+    ;;     (write-sequence strs out)))
 
 (defcommand
     (:mcstate "输出mc服务器状态" chat text)
     (declare (ignorable text))
     (refersh-instaces)
     (let ((status (manager-status))
-        (instances (handle-instaces-info)))
-    (reply
-     (format nil
-             "~A~A"
-             status
-             instances))))
+          (instances (handle-instaces-info)))
+      (reply
+       (format nil
+               "~A~A"
+               status
+               instances))))
 
 (defcommand
     (:mcstart "启动指定序号的mc服务器" chat text)
@@ -132,9 +159,9 @@
                    (if (listp res)
                        "实例需要几分钟才能启动完成，请等待几分钟后在进入"
                        (format nil "实例启动失败: ~A" res)))))
-              (reply "没有发现这个实例"))))
+              (reply "没有发现这个实例")))))
     (error (c)
-      (reply (format nil "[Error]: ~A" c)))))
+      (reply (format nil "[Error]: ~A" c))))
 
 (defcommand
     (:mcstop "关闭指定序号的mc服务器" chat text)
@@ -151,9 +178,9 @@
                    (if (listp res)
                        "实例关闭成功"
                        (format nil "实例关闭失败: ~A" res)))))
-              (reply "没有发现这个实例"))))
+              (reply "没有发现这个实例")))))
     (error (c)
-      (reply (format nil "[Error]: ~A" c)))))
+      (reply (format nil "[Error]: ~A" c))))
 
 (defcommand
     (:mcrestart "重启指定序号的mc服务器" chat text)
@@ -191,5 +218,25 @@
                 (reply "没有发现这个实例"))))
       (error (c)
         (reply (format nil "[Error]: ~A" c)))))
+
+(defcommand
+    (:mcaction "向指定序号的mc服务器发送指令, 例: /mcaction 1 /say hello" chat text)
+  (refersh-instaces)
+  (handler-case
+      (let ((temp (split-s text)))
+        (let ((index (parse-integer (car temp)))
+              (command (join " " (cdr temp))))
+          (let ((instance (search-instance index)))
+            (if instance
+                (progn
+                  (reply-text (format nil
+                                      "正在执行命令: ~A"
+                                      command))
+                  (instance-send-command command instance)
+                  (reply "命令执行完毕"))
+                (reply "没有发现这个实例")))
+          (format t "command: ~A~%" temp)))
+    (error (c)
+      (reply (format nil "[Error]: ~A" c)))))
 
 (in-package :cl-user)
