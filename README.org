@@ -1,5 +1,4 @@
 * Tel-Bot
-
 ** Usage
 #+begin_src bash
   rlwrap sbcl --load start.lisp
@@ -13,4 +12,12 @@
 #+begin_src bash
   git clone https://github.com/lizqwerscott/tel-bot.git
 #+end_src
-
+*** As a system service
+#+begin_src bash
+  cp ./tel-bot.service /etc/systemd/system/
+#+end_src
+***** Start
+#+begin_src bash
+  sudo systemctl daemon-reload
+  sudo systemctl start tel-bot.service
+#+end_src
