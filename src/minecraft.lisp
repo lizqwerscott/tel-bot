@@ -2,7 +2,7 @@
   (:import-from :alexandria :switch)
   (:import-from :alexandria :iota)
   (:import-from :str :join)
-  (:use :cl :tel-bot.head :tel-bot.bot :tel-bot.web :cl-telegram-bot))
+  (:use :cl :tel-bot.head :tel-bot.bot :tel-bot.web :cl-telegram-bot :lzputils.json))
 (in-package :tel-bot.minecraft)
 
 (defvar *key* (assoc-value (get-configs)

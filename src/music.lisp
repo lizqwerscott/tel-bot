@@ -1,5 +1,5 @@
 (defpackage tel-bot.music
-  (:use :common-lisp :tel-bot.bot :tel-bot.web :tel-bot.head :cl-telegram-bot)
+  (:use :common-lisp :tel-bot.bot :tel-bot.web :tel-bot.head :cl-telegram-bot :lzputils.json :lzputils.used)
   (:export
    ))
 (in-package :tel-bot.music)

@@ -1,4 +1,6 @@
 (defpackage tel-bot.picture
+  (:import-from :lzputils.json :assoc-value)
+  (:import-from :lzputils.used :if-return)
   (:use :cl :tel-bot.head :tel-bot.web :tel-bot.bot :cl-telegram-bot)
   (:export
    :random-picture))

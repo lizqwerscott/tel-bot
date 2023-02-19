@@ -5,7 +5,7 @@
                 :get-chat-id)
   (:import-from :cl-telegram-bot/chat
                 :get-chat-by-id)
-  (:use :cl :cl-telegram-bot :tel-bot.head)
+  (:use :cl :cl-telegram-bot :tel-bot.head :lzputils.json :lzputils.string :lzputils.used)
   (:export
 
    :create-bot

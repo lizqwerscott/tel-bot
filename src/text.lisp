@@ -1,4 +1,5 @@
 (defpackage :tel-bot.text
+  (:import-from :lzputils.json :assoc-value)
   (:use :common-lisp :tel-bot.bot :tel-bot.web :tel-bot.head :local-time :cl-telegram-bot)
   (:export
    :get-random-text

@@ -1,18 +1,12 @@
 (defpackage :tel-bot.head
-  (:import-from :jonathan :to-json)
-  (:import-from :uiop :run-program)
   (:import-from :random-state :make-generator)
   (:import-from :random-state :random-int)
-  (:use :common-lisp :yason :babel :str :local-time)
+  (:import-from :lzputils.json :load-json-file)
+  (:use :common-lisp :babel :str :local-time :lzputils.used)
   (:export
    :start-patron
    :stop-patron
    :create-job
-   :run-shell
-   :assoc-s
-   :assoc-value
-   :assoc-value-l
-   :assoc-v
 
    :random-int-r
    :random-select-list
@@ -20,14 +14,8 @@
    :split-s
    :string-merge
    :string-merges
-   :bits-to-json
 
    :generate-path
-   :when-bind
-   :if-return
-   :last1
-   :append1
-   :to-json-a
 
    :now-today
    :today-format
@@ -37,12 +25,7 @@
    :get-data-dir
    :get-config-dir
 
-   :load-json-file
-   :save-json-file
-
    :get-configs
-   :include-words?
-   :start-with-words?
 
    :make-file
    :download-url))
@@ -66,45 +49,6 @@
 
 (defparameter *source-dir* #P"~/tel_bot/")
 
-(setf yason:*parse-object-as* :alist)
-
-(defmacro when-bind ((var expr) &body body)
-  `(let ((,var ,expr))
-     (when ,var
-       ,@body)))
-
-(defmacro if-return (body &body (then-body))
-  (let ((g (gensym)))
-    `(let ((,g ,body))
-       (if ,g
-         ,g
-         ,then-body))))
-
-(defun last1 (lst)
-  (car (last lst)))
-
-(defun append1 (lst item)
-  (append lst
-          (list item)))
-
-(defun assoc-s (plist key)
-  (assoc key plist :test #'string=))
-
-(defun assoc-value (plist keys)
-  (if (listp keys)
-      (if keys
-          (assoc-value (cdr
-                        (assoc (car keys) plist :test #'string=))
-                       (cdr keys))
-          plist)
-      (cdr (assoc keys plist :test #'string=))))
-
-(defun assoc-value-l (plist keys)
-  (when (listp keys)
-    (mapcar #'(lambda (key)
-                (assoc-value plist key))
-            keys)))
-
 (defun random-int-r (max)
   (let ((generator (random-state:make-generator :mersenne-twister-32 (timestamp-to-universal (now)))))
     (random-state:random-int generator 0 max)))
@@ -126,15 +70,6 @@
   (if (= (length lst) 1)
       (car lst)
       (join deleimiter lst)))
-
-(defun bits-to-json (bits)
-  (parse (babel:octets-to-string bits)))
-
-(defun run-shell (program)
-  (run-program program))
-
-(defun to-json-a (alist)
-  (to-json alist :from :alist))
 
 (defun now-today ()
   (let ((now-time (now)))
@@ -164,19 +99,6 @@
   (merge-pathnames "configs/"
                    (get-source-dir)))
 
-(defun load-json-file (path)
-  (with-open-file (in path :direction :input :if-does-not-exist :error)
-    (multiple-value-bind (s) (make-string (file-length in))
-      (read-sequence s in)
-      (parse s))))
-
-(defun save-json-file (path json)
-  (with-open-file (out path
-                       :direction :output
-                       :if-exists :overwrite
-                       :if-does-not-exist :create)
-    (write-sequence json out)))
-
 (defvar *configs* nil)
 
 (defun load-config-file ()
@@ -190,24 +112,6 @@
 
 (defun get-configs ()
   *configs*)
-
-(defun start-with-words? (text keywords &optional res)
-  (if keywords
-      (start-with-words? text
-                         (cdr keywords)
-                         (or res
-                            (starts-with? (car keywords)
-                                          text)))
-      res))
-
-(defun include-words? (text keywords &optional res)
-  (if keywords
-      (include-words? text
-                     (cdr keywords)
-                     (or res
-                         (contains? (car keywords)
-                                    text)))
-      res))
 
 (defun make-file (name extension path)
   (merge-pathnames (format nil "~A.~A" name extension)

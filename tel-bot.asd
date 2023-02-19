@@ -6,14 +6,13 @@
                "alexandria"
                "quri"
                "str"
-               "yason"
-               "jonathan"
                "local-time"
                "bordeaux-threads"
                "babel"
                "patron"
                "cl-telegram-bot"
-               "random-state")
+               "random-state"
+               "lzputils")
   :components ((:module "src"
                 :components
                 ((:file "head")

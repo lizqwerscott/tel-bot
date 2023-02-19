@@ -1,5 +1,6 @@
 (defpackage tel-bot
   (:import-from :bordeaux-threads :make-thread)
+  (:import-from :lzputils.json :assoc-value)
   (:use
    :cl
    :tel-bot.head
