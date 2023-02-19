@@ -98,10 +98,12 @@
       (ensure-directories-exist (get-data-dir))
       (ensure-directories-exist (get-config-dir)))))
 
-(defun start ()
+(defun start (&optional (is-debug nil))
   (base-config)
   (start-bot)
-  (make-thread #'run))
+  (if is-debug
+      (make-thread #'run)
+      (run)))
 
 (defun stop ()
   (stop-bot))
