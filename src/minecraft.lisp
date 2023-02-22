@@ -2,13 +2,11 @@
   (:import-from :alexandria :switch)
   (:import-from :alexandria :iota)
   (:import-from :str :join)
-  (:use :cl :tel-bot.head :tel-bot.bot :tel-bot.web :cl-telegram-bot :lzputils.json))
+  (:use :cl :tel-bot.head :tel-bot.bot :tel-bot.web :cl-telegram-bot :lzputils.json :easy-config))
 (in-package :tel-bot.minecraft)
 
-(defvar *key* (assoc-value (get-configs)
-                           "mcToken"))
-(defvar *address* (assoc-value (get-configs)
-                               "mcAddress"))
+(defvar *key* (get-config "mc-token"))
+(defvar *address* (get-config "mc-address"))
 
 (defparameter *instances* nil)
 

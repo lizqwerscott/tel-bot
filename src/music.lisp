@@ -1,5 +1,5 @@
 (defpackage tel-bot.music
-  (:use :common-lisp :tel-bot.bot :tel-bot.web :tel-bot.head :cl-telegram-bot :lzputils.json :lzputils.used)
+  (:use :common-lisp :tel-bot.bot :tel-bot.web :tel-bot.head :cl-telegram-bot :lzputils.json :lzputils.used :easy-config)
   (:export
    ))
 (in-package :tel-bot.music)
@@ -74,7 +74,7 @@
 
 (defun download-song (song &optional (path (ensure-directories-exist
                                             (merge-pathnames "songs/"
-                                                             (get-data-dir)))))
+                                                             (get-data-path)))))
   (when (assoc-value song "url")
     (let ((finish-path (make-file (assoc-value song "id")
                                   "mp3"

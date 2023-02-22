@@ -2,7 +2,7 @@
   (:import-from :random-state :make-generator)
   (:import-from :random-state :random-int)
   (:import-from :lzputils.json :load-json-file)
-  (:use :common-lisp :babel :str :local-time :lzputils.used)
+  (:use :common-lisp :babel :str :local-time :lzputils.used :easy-config)
   (:export
    :start-patron
    :stop-patron
@@ -19,13 +19,6 @@
 
    :now-today
    :today-format
-
-   :get-source-dir
-   :set-source-dir
-   :get-data-dir
-   :get-config-dir
-
-   :get-configs
 
    :make-file
    :download-url))
@@ -46,8 +39,6 @@
   (patron:submit-job *patron*
                      (make-instance 'patron:job
                                     :function fun)))
-
-(defparameter *source-dir* #P"~/tel_bot/")
 
 (defun random-int-r (max)
   (let ((generator (random-state:make-generator :mersenne-twister-32 (timestamp-to-universal (now)))))
@@ -85,34 +76,6 @@
                                  '(:year "年" :month "月" :day "日")
                                  '(:year "-" :month "-" :day))))
 
-(defun get-source-dir ()
-  *source-dir*)
-
-(defun set-source-dir (path)
-  (setf *source-dir* path))
-
-(defun get-data-dir ()
-  (merge-pathnames "datas/"
-                   (get-source-dir)))
-
-(defun get-config-dir ()
-  (merge-pathnames "configs/"
-                   (get-source-dir)))
-
-(defvar *configs* nil)
-
-(defun load-config-file ()
-  (let ((path (merge-pathnames "config.json"
-                               (get-config-dir))))
-    (when (probe-file path)
-      (setq *configs*
-            (load-json-file path)))))
-
-(load-config-file)
-
-(defun get-configs ()
-  *configs*)
-
 (defun make-file (name extension path)
   (merge-pathnames (format nil "~A.~A" name extension)
                    path))
@@ -129,5 +92,11 @@
     (error (c)
       (format t "[download-url Error]: ~A~%" c)
       nil)))
+
+(defconfig (:tel-bot t)
+  ((bot-token :type :str)
+   (proxy :type :str)
+   (mc-address :type :str)
+   (mc-token :type :str)))
 
 (in-package :cl-user)

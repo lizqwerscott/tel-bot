@@ -5,7 +5,7 @@
                 :get-chat-id)
   (:import-from :cl-telegram-bot/chat
                 :get-chat-by-id)
-  (:use :cl :cl-telegram-bot :tel-bot.head :lzputils.json :lzputils.string :lzputils.used)
+  (:use :cl :cl-telegram-bot :tel-bot.head :lzputils.json :lzputils.string :lzputils.used :easy-config)
   (:export
 
    :create-bot
@@ -34,13 +34,11 @@
 (defvar *bot* nil)
 
 (cl-telegram-bot/network:set-proxy
-   (assoc-value (get-configs)
-                "proxy"))
+   (get-config 'proxy))
 
 (defun create-bot ()
   (setf *bot*
-        (make-manager-bot (assoc-value (get-configs)
-                                       "botToken")
+        (make-manager-bot (get-config "bot-token")
                           :debug t)))
 
 (defun start-bot ()
@@ -122,8 +120,7 @@
                "proxychains4 python ~A ~A ~A ~A '~A' '~A'"
                (merge-pathnames "scripts/send_audio.py"
                                 (asdf:system-source-directory :tel-bot))
-               (assoc-value (get-configs)
-                            "botToken")
+               (get-config "bot-token")
                (if (numberp chat-id)
                    chat-id
                    (get-chat-id chat-id))
@@ -153,12 +150,12 @@
 
 (defun save-master-chat ()
   (save-json-file (merge-pathnames "master.json"
-                                   (get-data-dir))
+                                   (get-data-path))
                   (to-json-a `(("master" . ,*master-chat*)))))
 
 (defun load-master-chat ()
   (let ((file (merge-pathnames "master.json"
-                               (get-data-dir))))
+                               (get-data-path))))
     (when (probe-file file)
       (setf *master-chat*
             (assoc-value (load-json-file file)
@@ -171,12 +168,12 @@
 
 (defun save-manager-group ()
   (save-json-file (merge-pathnames "groups.json"
-                                   (get-data-dir))
+                                   (get-data-path))
                   (to-json-a `(("groups" . ,*manager-group*)))))
 
 (defun load-manager-group ()
   (let ((file (merge-pathnames "groups.json"
-                               (get-data-dir))))
+                               (get-data-path))))
     (when (probe-file file)
       (setf *manager-group*
             (assoc-value (load-json-file file)

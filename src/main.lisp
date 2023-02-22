@@ -87,19 +87,7 @@
   (format t "Stop patron...~%")
   (stop-patron))
 
-(defun base-config ()
-  (when (not (probe-file (get-source-dir)))
-    (progn
-      (format t "Please choose your source dir(input y use default: ~A)~%:" (get-source-dir))
-      (let ((input (read-line)))
-        (if (not (string= input "y"))
-            (set-source-dir input)))
-      (ensure-directories-exist (get-source-dir))
-      (ensure-directories-exist (get-data-dir))
-      (ensure-directories-exist (get-config-dir)))))
-
 (defun start (&optional (is-debug nil))
-  (base-config)
   (start-bot)
   (if is-debug
       (make-thread #'run)

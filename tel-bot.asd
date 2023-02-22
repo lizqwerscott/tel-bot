@@ -12,7 +12,8 @@
                "patron"
                "cl-telegram-bot"
                "random-state"
-               "lzputils")
+               "lzputils"
+               "easy-config")
   :components ((:module "src"
                 :components
                 ((:file "head")
