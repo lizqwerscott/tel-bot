@@ -80,11 +80,14 @@
                           '("help"))
           (reply (help))
           (reply
-           (ask
-            (str:trim
-             (replace-all-l '("初音" "miku" "初音未来" "@kk_manage_bot")
-                            ""
-                            text))))))))
+           (let ((res (ask
+                       (str:trim
+                        (replace-all-l '("初音" "miku" "初音未来" "@kk_manage_bot")
+                                       ""
+                                       text)))))
+             (if (string= "" (str:trim res))
+                 "api错误"
+                 res)))))))
 
 (defmethod on-command ((bot manager-bot) (command (eql :help)) text)
   (reply (help)))
