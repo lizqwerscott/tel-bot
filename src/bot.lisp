@@ -6,6 +6,8 @@
   (:import-from :cl-telegram-bot/chat
    :get-chat-by-id)
   (:import-from :tel-bot.chatgpt :ask)
+  (:import-from :tel-bot.chatgpt :change-mode)
+  (:import-from :tel-bot.chatgpt :get-mode)
   (:use :cl :cl-telegram-bot :tel-bot.head :lzputils.json :lzputils.string :lzputils.used :easy-config)
   (:export
 
@@ -61,21 +63,28 @@
              *command-infos*)
     (format nil "命令介绍:~%~{~A~%~}" help-text)))
 
+
+;;; Last
+;; (if (and (include-words? text
+;;                        '("会" "懂" "能做"))
+;;        (include-words? text
+;;                        '("什么")))
+;;     )
+
 (defmethod on-message ((bot manager-bot) text)
   (let ((words (str:trim text)))
     (format t "message: ~A~%" words)
     (when (start-with-words? words
                              '("初音" "miku" "初音未来" "@kk_manage_bot"))
-      (if (and (include-words? text
-                             '("会" "懂" "能做"))
-             (include-words? text
-                             '("什么")))
+      (if (include-words? text
+                          '("help"))
           (reply (help))
           (reply
            (ask
-            (replace-all-l '("初音" "miku" "初音未来" "@kk_manage_bot")
-                           ""
-                           text)))))))
+            (str:trim
+             (replace-all-l '("初音" "miku" "初音未来" "@kk_manage_bot")
+                            ""
+                            text))))))))
 
 (defmethod on-command ((bot manager-bot) (command (eql :help)) text)
   (reply (help)))
@@ -210,5 +219,26 @@
      (format nil
              "会话列表：~%~{~A~}"
              *manager-group*)))
+
+(defcommand
+    (:nowmode "获取现在机器人的模式" chat text)
+    (declare (ignorable text))
+    (reply
+     (format nil
+             "现在的模式是~A模式"
+             (if (get-mode)
+                 "记忆"
+                 "普通"))))
+
+(defcommand
+    (:changemode "改变机器人对话的模式, 记忆模式下可以记住你以前说的话." chat text)
+    (declare (ignorable text))
+    (change-mode)
+    (reply
+     (format nil
+             "现在的模式是~A模式"
+             (if (get-mode)
+                 "记忆"
+                 "普通"))))
 
 (in-package :cl-user)
