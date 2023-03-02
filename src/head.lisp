@@ -21,7 +21,9 @@
    :today-format
 
    :make-file
-   :download-url))
+   :download-url
+
+   :replace-all-l))
 (in-package :tel-bot.head)
 
 (defvar *patron* (make-instance 'patron:patron
@@ -94,9 +96,23 @@
       nil)))
 
 (defconfig (:tel-bot t)
-  ((bot-token :type :str)
-   (proxy :type :str)
-   (mc-address :type :str)
-   (mc-token :type :str)))
+    ((bot-token :type :str)
+     (proxy :type :str)
+     (mc-address :type :str)
+     (mc-token :type :str)
+     (chatgpt :type :str)))
+
+(defun replace-all-l (olds new s)
+  (if olds
+      (if (listp olds)
+          (replace-all-l (cdr olds)
+                         new
+                         (replace-all (car olds)
+                                      new
+                                      s))
+          (replace-all olds
+                       new
+                       s))
+      s))
 
 (in-package :cl-user)

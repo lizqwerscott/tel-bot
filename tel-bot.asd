@@ -18,6 +18,7 @@
                 :components
                 ((:file "head")
                  (:file "web")
+                 (:file "chatgpt")
                  (:file "bot")
                  (:file "task")
                  (:file "text")

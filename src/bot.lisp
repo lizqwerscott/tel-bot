@@ -1,10 +1,11 @@
 (defpackage tel-bot.bot
   (:import-from :cl-telegram-bot/message
-                :get-current-chat)
+   :get-current-chat)
   (:import-from :cl-telegram-bot/chat
-                :get-chat-id)
+   :get-chat-id)
   (:import-from :cl-telegram-bot/chat
-                :get-chat-by-id)
+   :get-chat-by-id)
+  (:import-from :tel-bot.chatgpt :ask)
   (:use :cl :cl-telegram-bot :tel-bot.head :lzputils.json :lzputils.string :lzputils.used :easy-config)
   (:export
 
@@ -68,8 +69,13 @@
       (if (and (include-words? text
                              '("会" "懂" "能做"))
              (include-words? text
-                           '("什么")))
-          (reply (help))))))
+                             '("什么")))
+          (reply (help))
+          (reply
+           (ask
+            (replace-all-l '("初音" "miku" "初音未来" "@kk_manage_bot")
+                           ""
+                           text)))))))
 
 (defmethod on-command ((bot manager-bot) (command (eql :help)) text)
   (reply (help)))
