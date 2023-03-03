@@ -33,7 +33,8 @@
                               `(("model" . "gpt-3.5-turbo")
                                 ("temperature" . 0.2)
                                 ("max_tokens" . 500)
-                                ("messages" . ,*last-messages*))))
+                                ("messages" . ,*last-messages*)))
+                    :proxy (get-config "proxy"))
         (declare (ignorable status uri stream))
         (if (str:starts-with-p "application/json"
                                (gethash "content-type"
@@ -47,8 +48,11 @@
   (let ((messages (assoc-value data
                                "choices")))
     (when (= 1 (length messages))
-      (assoc-value (car messages)
-                   (list "message" "content")))))
+      (let ((message (assoc-value (car messages)
+                                  (list "message" "content"))))
+        (when (not (string= ""
+                          (str:trim message)))
+          message)))))
 
 (defun ask (content)
   (if *continue*
@@ -70,6 +74,7 @@
             (append1 *last-messages*
                      `(("role" . "assistant")
                        ("content" . ,message)))))
+    (log:info "return message: ~A~%" message)
     message))
 
 (in-package :cl-user)
