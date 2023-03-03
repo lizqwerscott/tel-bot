@@ -85,7 +85,7 @@
                         (replace-all-l '("初音" "miku" "初音未来" "@kk_manage_bot")
                                        ""
                                        text)))))
-             (if res
+             (if (not res)
                  "api错误"
                  res)))))))
 
