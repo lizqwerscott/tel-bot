@@ -71,23 +71,30 @@
 ;;                        '("什么")))
 ;;     )
 
+(defun is-group ()
+  (typep (get-current-chat) 'cl-telegram-bot/chat::base-group))
+
+(defun handle-message (text)
+  (reply
+   (if (include-words? text
+                       '("help"))
+       (help)
+       (ask text))))
+
 (defmethod on-message ((bot manager-bot) text)
   (let ((words (str:trim text)))
     (format t "message: ~A~%" words)
-    (when (start-with-words? words
-                             '("初音" "miku" "初音未来" "@kk_manage_bot"))
-      (if (include-words? text
-                          '("help"))
-          (reply (help))
-          (reply
-           (let ((res (ask
-                       (str:trim
-                        (replace-all-l '("初音" "miku" "初音未来" "@kk_manage_bot")
-                                       ""
-                                       text)))))
-             (if (not res)
-                 "api错误"
-                 res)))))))
+    (if (is-group)
+        (when (start-with-words? words
+                                 '("初音" "miku" "初音未来" "@kk_manage_bot"))
+          (handle-message
+           (str:trim
+            (replace-all-l '("初音" "miku" "初音未来" "@kk_manage_bot")
+                           ""
+                           text))))
+        (handle-message
+         (str:trim
+          text)))))
 
 (defmethod on-command ((bot manager-bot) (command (eql :help)) text)
   (reply (help)))

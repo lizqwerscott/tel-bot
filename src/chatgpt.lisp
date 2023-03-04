@@ -75,6 +75,7 @@
                      `(("role" . "assistant")
                        ("content" . ,message)))))
     (log:info "return message: ~A~%" message)
-    message))
+    (if-return message
+      "api错误")))
 
 (in-package :cl-user)
