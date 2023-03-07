@@ -19,6 +19,7 @@
                 ((:file "head")
                  (:file "web")
                  (:file "chatgpt")
+                 (:file "intent")
                  (:file "bot")
                  (:file "task")
                  (:file "text")

@@ -100,7 +100,8 @@
      (proxy :type :str)
      (mc-address :type :str)
      (mc-token :type :str)
-     (chatgpt :type :str)))
+     (chatgpt :type :str)
+     (intent-address :default "http://127.0.0.1:9797")))
 
 (defun replace-all-l (olds new s)
   (if olds

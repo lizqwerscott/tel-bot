@@ -2,7 +2,7 @@
   (:import-from :alexandria :switch)
   (:import-from :alexandria :iota)
   (:import-from :str :join)
-  (:use :cl :tel-bot.head :tel-bot.bot :tel-bot.web :cl-telegram-bot :lzputils.json :easy-config))
+  (:use :cl :tel-bot.head :tel-bot.bot :tel-bot.web :cl-telegram-bot :lzputils.json :easy-config :lzputils.used))
 (in-package :tel-bot.minecraft)
 
 (defvar *key* (get-config "mc-token"))
@@ -104,6 +104,35 @@
      (dex:http-request-failed (e)
        (yason:parse (dex:response-body e))))))
 
+(defun manager-instances-command1 (command instance)
+  (manager-instance-command command
+                            (second (second instance))
+                            (first instance)))
+
+(defun manager-instance (command instance zh-command good)
+  (progn
+    (reply-text
+     (format nil
+             "正在~A实例......"
+             zh-command))
+    (let ((res (manager-instances-command1 command instance)))
+      (reply
+       (if (listp res)
+           good
+           (format nil "实例~A失败: ~A" zh-command res))))))
+
+(defun start-instance (instance)
+  (manager-instance "open" instance "启动" "实例需要几分钟才能启动完成，请等待几分钟后在进入"))
+
+(defun stop-instance (instance)
+  (manager-instance "stop" instance "关闭" "实例关闭成功"))
+
+(defun restart-instance (instance)
+  (manager-instance "restart" instance "重启" "实例需要几分钟才能重启成功，请等待几分钟后在进入"))
+
+(defun kill-instance (instance)
+  (manager-instance "kill" instance "强制关闭" "实例强制关闭成功"))
+
 (defun instance-send-command (command instance)
   (manager-instance-command "command"
                             (second (second instance))
@@ -126,9 +155,9 @@
 ;;       (dotimes (i n)
 ;;         (format t "~A~%" (elt lines (- (length lines) i 1)))))
 ;;     (instance-get-log (second (second instance)) (car instance))))
-    ;; (let ((strs (instance-get-log (second (second instance)) (car instance))))
-    ;;   (with-open-file (out "~/a.txt" :direction :output :if-does-not-exist :create)
-    ;;     (write-sequence strs out)))
+;; (let ((strs (instance-get-log (second (second instance)) (car instance))))
+;;   (with-open-file (out "~/a.txt" :direction :output :if-does-not-exist :create)
+;;     (write-sequence strs out)))
 
 (defcommand
     (:mcstate "输出mc服务器状态" chat text)
@@ -142,60 +171,34 @@
                status
                instances))))
 
+(defun parse-text-instance (text)
+  (if-return (search-instance (parse-integer text))
+    (reply "没有发现这个实例")))
+
 (defcommand
     (:mcstart "启动指定序号的mc服务器" chat text)
     (declare (ignorable text))
     (refersh-instaces)
     (handler-case
-      (let ((index (parse-integer text)))
-        (let ((instance (search-instance index)))
-          (if instance
-              (progn
-                (reply-text "正在启动实例......")
-                (let ((res (manager-instance-command "open" (second (second instance)) (first instance))))
-                  (reply
-                   (if (listp res)
-                       "实例需要几分钟才能启动完成，请等待几分钟后在进入"
-                       (format nil "实例启动失败: ~A" res)))))
-              (reply "没有发现这个实例")))))
+        (start-instance (parse-text-instance text)))
     (error (c)
-      (reply (format nil "[Error]: ~A" c))))
+           (reply (format nil "[Error]: ~A" c))))
 
 (defcommand
     (:mcstop "关闭指定序号的mc服务器" chat text)
     (declare (ignorable text))
     (refersh-instaces)
     (handler-case
-      (let ((index (parse-integer text)))
-        (let ((instance (search-instance index)))
-          (if instance
-              (progn
-                (reply-text "正在关闭实例......")
-                (let ((res (manager-instance-command "stop" (second (second instance)) (first instance))))
-                  (reply
-                   (if (listp res)
-                       "实例关闭成功"
-                       (format nil "实例关闭失败: ~A" res)))))
-              (reply "没有发现这个实例")))))
+        (stop-instance (parse-text-instance text)))
     (error (c)
-      (reply (format nil "[Error]: ~A" c))))
+           (reply (format nil "[Error]: ~A" c))))
 
 (defcommand
     (:mcrestart "重启指定序号的mc服务器" chat text)
     (declare (ignorable text))
     (refersh-instaces)
     (handler-case
-        (let ((index (parse-integer text)))
-          (let ((instance (search-instance index)))
-            (if instance
-                (progn
-                  (reply-text "正在重新启动实例......")
-                  (let ((res (manager-instance-command "restart" (second (second instance)) (first instance))))
-                    (reply
-                     (if (listp res)
-                         "实例需要几分钟才能重启成功，请等待几分钟后在进入"
-                         (format nil "实例重启失败: ~A" res)))))
-                (reply "没有发现这个实例"))))
+        (restart-instance (parse-text-instance text))
       (error (c)
         (reply (format nil "[Error]: ~A" c)))))
 
@@ -203,17 +206,7 @@
     (:mckill "强制关闭指定序号的mc服务器" chat text)
     (refersh-instaces)
     (handler-case
-        (let ((index (parse-integer text)))
-          (let ((instance (search-instance index)))
-            (if instance
-                (progn
-                  (reply-text "正在强制关闭实例......")
-                  (let ((res (manager-instance-command "kill" (second (second instance)) (first instance))))
-                    (reply
-                     (if (listp res)
-                         "实例强制关闭成功"
-                         (format nil "实例强制关闭失败: ~A" res)))))
-                (reply "没有发现这个实例"))))
+        (kill-instance (parse-text-instance text))
       (error (c)
         (reply (format nil "[Error]: ~A" c)))))
 

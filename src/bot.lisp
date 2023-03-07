@@ -8,6 +8,8 @@
   (:import-from :tel-bot.chatgpt :ask)
   (:import-from :tel-bot.chatgpt :change-mode)
   (:import-from :tel-bot.chatgpt :get-mode)
+  (:import-from :str :starts-with?)
+  (:import-from :str :trim)
   (:use :cl :cl-telegram-bot :tel-bot.head :lzputils.json :lzputils.string :lzputils.used :easy-config)
   (:export
 
@@ -79,21 +81,23 @@
    (if (include-words? text
                        '("help"))
        (help)
-       (ask text))))
+       (if (starts-with? "/" text)
+           "命令错误"
+           (ask text)))))
 
 (defmethod on-message ((bot manager-bot) text)
-  (let ((words (str:trim text)))
+  (let ((words (trim text)))
     (format t "message: ~A~%" words)
     (if (is-group)
         (when (start-with-words? words
                                  '("初音" "miku" "初音未来" "@kk_manage_bot"))
           (handle-message
-           (str:trim
+           (trim
             (replace-all-l '("初音" "miku" "初音未来" "@kk_manage_bot")
                            ""
                            text))))
         (handle-message
-         (str:trim
+         (trim
           text)))))
 
 (defmethod on-command ((bot manager-bot) (command (eql :help)) text)
