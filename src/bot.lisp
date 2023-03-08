@@ -148,9 +148,7 @@
          (if (starts-with? "/" text)
              "命令错误"
              (when (not (handle-command text))
-               ;; (ask text)
-               ""
-               ))))))
+               (ask text)))))))
 
 (defmethod on-message ((bot manager-bot) text)
   (let ((words (trim text)))
