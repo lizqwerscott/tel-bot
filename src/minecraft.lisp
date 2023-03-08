@@ -206,7 +206,9 @@
              `((("name" . "mc"))
                ("index")
                ,#'(lambda (index)
-                    (let ((i (chinese-index-to-number index)))
+                    (let ((i (if index
+                                 (chinese-index-to-number index)
+                                 1)))
                       (format t "start mc ~A~%" i)
                       (refersh-instaces)
                       (start-instance (find-instance i))))))
@@ -224,7 +226,9 @@
              `((("name" . "mc"))
                ("index")
                ,#'(lambda (index)
-                    (let ((i (chinese-index-to-number index)))
+                    (let ((i (if index
+                                 (chinese-index-to-number index)
+                                 1)))
                       (format t "start mc ~A~%" i)
                       (refersh-instaces)
                       (stop-instance (find-instance i))))))
@@ -242,7 +246,9 @@
              `((("name" . "mc"))
                ("index")
                ,#'(lambda (index)
-                    (let ((i (chinese-index-to-number index)))
+                    (let ((i (if index
+                                 (chinese-index-to-number index)
+                                 1)))
                       (format t "start mc ~A~%" i)
                       (refersh-instaces)
                       (restart-instance (find-instance i))))))
@@ -259,7 +265,9 @@
              `((("name" . "mc"))
                ("index")
                ,#'(lambda (index)
-                    (let ((i (chinese-index-to-number index)))
+                    (let ((i (if index
+                                 (chinese-index-to-number index)
+                                 1)))
                       (format t "start mc ~A~%" i)
                       (refersh-instaces)
                       (kill-instance (find-instance i))))))
