@@ -172,9 +172,22 @@
                status
                instances))))
 
+(add-command "STATE"
+             `((("name" . "mc"))
+               ()
+               ,#'(lambda ()
+                    (refersh-instaces)
+                    (let ((status (manager-status))
+                          (instances (handle-instaces-info)))
+                      (reply
+                       (format nil
+                               "~A~A"
+                               status
+                               instances))))))
+
 (defun parse-text-instance (text)
   (if-return (search-instance (parse-integer text))
-    (reply "没有发现这个实例")))
+             (reply "没有发现这个实例")))
 
 (defun find-instance (i)
   (if-return (search-instance i)
@@ -207,7 +220,7 @@
       (error (c)
         (reply (format nil "[Error]: ~A" c)))))
 
-(add-command "STOP"
+(add-command "CLOSE"
              `((("name" . "mc"))
                ("index")
                ,#'(lambda (index)
