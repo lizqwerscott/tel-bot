@@ -9,7 +9,10 @@
   (:import-from :tel-bot.chatgpt :change-mode)
   (:import-from :tel-bot.chatgpt :get-mode)
   (:import-from :str :starts-with?)
+  (:import-from :str :containsp)
   (:import-from :str :trim)
+  (:import-from :alexandria :when-let)
+  (:import-from :tel-bot.intent :predict-intent)
   (:use :cl :cl-telegram-bot :tel-bot.head :lzputils.json :lzputils.string :lzputils.used :easy-config)
   (:export
 
@@ -18,6 +21,7 @@
    :stop-bot
 
    :defcommand
+   :add-command
 
    :manager-bot
    :make-manager-bot
@@ -54,6 +58,7 @@
 
 ;; Help command
 (defparameter *command-infos* (make-hash-table :test #'eql))
+(defparameter *command-condition* (make-hash-table :test #'equal))
 
 (defun help ()
   (let ((help-text nil))
@@ -76,28 +81,88 @@
 (defun is-group ()
   (typep (get-current-chat) 'cl-telegram-bot/chat::base-group))
 
+(defun add-command (condition command)
+  (multiple-value-bind (value is-find) (gethash condition
+                                                *command-condition*)
+    (setf (gethash condition
+                   *command-condition*)
+          (if is-find
+              (append1 value
+                       command)
+              (list command)))))
+
+;; (add-command "LAUNCH"
+;;              '((("name" . "mc"))
+;;                ("index")
+;;                #'(lambda (index)
+;;                    (format t "start mc ~A~%" index))))
+
+(defun command-match (slots conditions &optional (matchp t))
+  (if conditions
+      (let ((condition (car conditions)))
+        (command-match slots
+                       (cdr conditions)
+                       (and matchp
+                          (when-let (value (assoc-value slots
+                                                        (car condition)))
+                            (containsp (cdr condition)
+                                       value)))))
+      matchp))
+
+(defun commands-match-and-use (commands slots)
+  (when commands
+    (let ((command (car commands)))
+      (if (command-match slots
+                         (first command))
+          (handler-case
+              (apply (third command)
+                     (mapcar #'(lambda (argv)
+                                 (assoc-value slots argv))
+                             (second command)))
+            (error (c)
+              (reply (format nil "[Error]: ~A" c))))
+          (commands-match-and-use (cdr commands)
+                                  slots)))))
+
+(defun handle-command (text)
+  (uiop:if-let (res (predict-intent text))
+    (multiple-value-bind (value is-find) (gethash (assoc-value res "intent")
+                                                  *command-condition*)
+      (if is-find
+          (commands-match-and-use value
+                                  (assoc-value res
+                                               "slots"))
+          (progn
+            (log:info "not find intent: ~A~%" (assoc-value res "INTENT"))
+            nil)))
+    (progn
+      (log:info "not predict intent: ~A~%" text)
+      nil)))
+
 (defun handle-message (text)
-  (reply
-   (if (include-words? text
-                       '("help"))
-       (help)
-       (if (starts-with? "/" text)
-           "命令错误"
-           (ask text)))))
+  (when text
+    (reply
+     (if (include-words? text
+                         '("help"))
+         (help)
+         (if (starts-with? "/" text)
+             "命令错误"
+             (when (not (handle-command text))
+               ;; (ask text)
+               ""
+               ))))))
 
 (defmethod on-message ((bot manager-bot) text)
   (let ((words (trim text)))
     (format t "message: ~A~%" words)
-    (if (is-group)
-        (when (start-with-words? words
-                                 '("初音" "miku" "初音未来" "@kk_manage_bot"))
-          (handle-message
-           (trim
+    (handle-message
+     (trim
+      (if (is-group)
+          (when (start-with-words? words
+                                   '("初音" "miku" "初音未来" "@kk_manage_bot"))
             (replace-all-l '("初音" "miku" "初音未来" "@kk_manage_bot")
                            ""
-                           text))))
-        (handle-message
-         (trim
+                           text))
           text)))))
 
 (defmethod on-command ((bot manager-bot) (command (eql :help)) text)

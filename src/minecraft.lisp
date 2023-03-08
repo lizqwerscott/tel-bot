@@ -2,6 +2,7 @@
   (:import-from :alexandria :switch)
   (:import-from :alexandria :iota)
   (:import-from :str :join)
+  (:import-from :tel-bot.intent :chinese-index-to-number)
   (:use :cl :tel-bot.head :tel-bot.bot :tel-bot.web :cl-telegram-bot :lzputils.json :easy-config :lzputils.used))
 (in-package :tel-bot.minecraft)
 
@@ -175,23 +176,45 @@
   (if-return (search-instance (parse-integer text))
     (reply "没有发现这个实例")))
 
+(defun find-instance (i)
+  (if-return (search-instance i)
+    (reply "没有发现这个实例")))
+
 (defcommand
     (:mcstart "启动指定序号的mc服务器" chat text)
     (declare (ignorable text))
     (refersh-instaces)
     (handler-case
-        (start-instance (parse-text-instance text)))
-    (error (c)
-           (reply (format nil "[Error]: ~A" c))))
+        (start-instance (parse-text-instance text))
+      (error (c)
+        (reply (format nil "[Error]: ~A" c)))))
+
+(add-command "LAUNCH"
+             `((("name" . "mc"))
+               ("index")
+               ,#'(lambda (index)
+                    (let ((i (chinese-index-to-number index)))
+                      (format t "start mc ~A~%" i)
+                      (refersh-instaces)
+                      (start-instance (find-instance i))))))
 
 (defcommand
     (:mcstop "关闭指定序号的mc服务器" chat text)
     (declare (ignorable text))
     (refersh-instaces)
     (handler-case
-        (stop-instance (parse-text-instance text)))
-    (error (c)
-           (reply (format nil "[Error]: ~A" c))))
+        (stop-instance (parse-text-instance text))
+      (error (c)
+        (reply (format nil "[Error]: ~A" c)))))
+
+(add-command "STOP"
+             `((("name" . "mc"))
+               ("index")
+               ,#'(lambda (index)
+                    (let ((i (chinese-index-to-number index)))
+                      (format t "start mc ~A~%" i)
+                      (refersh-instaces)
+                      (stop-instance (find-instance i))))))
 
 (defcommand
     (:mcrestart "重启指定序号的mc服务器" chat text)
@@ -202,6 +225,15 @@
       (error (c)
         (reply (format nil "[Error]: ~A" c)))))
 
+(add-command "RESTART"
+             `((("name" . "mc"))
+               ("index")
+               ,#'(lambda (index)
+                    (let ((i (chinese-index-to-number index)))
+                      (format t "start mc ~A~%" i)
+                      (refersh-instaces)
+                      (restart-instance (find-instance i))))))
+
 (defcommand
     (:mckill "强制关闭指定序号的mc服务器" chat text)
     (refersh-instaces)
@@ -210,24 +242,33 @@
       (error (c)
         (reply (format nil "[Error]: ~A" c)))))
 
+(add-command "KILL"
+             `((("name" . "mc"))
+               ("index")
+               ,#'(lambda (index)
+                    (let ((i (chinese-index-to-number index)))
+                      (format t "start mc ~A~%" i)
+                      (refersh-instaces)
+                      (kill-instance (find-instance i))))))
+
 (defcommand
     (:mcaction "向指定序号的mc服务器发送指令, 例: /mcaction 1 /say hello" chat text)
-  (refersh-instaces)
-  (handler-case
-      (let ((temp (split-s text)))
-        (let ((index (parse-integer (car temp)))
-              (command (join " " (cdr temp))))
-          (let ((instance (search-instance index)))
-            (if instance
-                (progn
-                  (reply-text (format nil
-                                      "正在执行命令: ~A"
-                                      command))
-                  (instance-send-command command instance)
-                  (reply "命令执行完毕"))
-                (reply "没有发现这个实例")))
-          (format t "command: ~A~%" temp)))
-    (error (c)
-      (reply (format nil "[Error]: ~A" c)))))
+    (refersh-instaces)
+    (handler-case
+        (let ((temp (split-s text)))
+          (let ((index (parse-integer (car temp)))
+                (command (join " " (cdr temp))))
+            (let ((instance (search-instance index)))
+              (if instance
+                  (progn
+                    (reply-text (format nil
+                                        "正在执行命令: ~A"
+                                        command))
+                    (instance-send-command command instance)
+                    (reply "命令执行完毕"))
+                  (reply "没有发现这个实例")))
+            (format t "command: ~A~%" temp)))
+      (error (c)
+        (reply (format nil "[Error]: ~A" c)))))
 
 (in-package :cl-user)
