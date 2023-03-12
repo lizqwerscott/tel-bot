@@ -15,8 +15,7 @@ switch have two parameter: (acg) (bg)"
        (web-get-url
         (format nil "https://www.loliapi.com/~A/?type=url" switch)))
     (error (c)
-      (format t "[loli get picture Error]: ~A~%" c)
-      nil)))
+      (log:error "[loli get picture Error]: ~A~%" c))))
 
 (defun hanxing-get ()
   (handler-case
@@ -25,18 +24,16 @@ switch have two parameter: (acg) (bg)"
         (when (= 200 (assoc-value res "code"))
           (assoc-value res '("info" "url"))))
     (error (c)
-      (format t "[hanxing get picture Error]: ~A~%" c)
-      nil)))
+      (log:error "[hanxing get picture Error]: ~A~%" c))))
 
 (defun syxz-get ()
   (handler-case
       (let ((res (web-get-url "https://img.xjh.me/random_img.php?&return=json"
-                          :jsonp t)))
+                              :jsonp t)))
         (when (= 200 (assoc-value res "result"))
           (format nil "https:~A" (assoc-value res "img"))))
     (error (c)
-      (format t "[syxz get picture Error]: ~A~%" c)
-      nil)))
+      (log:error "[syxz get picture Error]: ~A~%" c))))
 
 (defun vvhan-get ()
   (handler-case
@@ -45,8 +42,7 @@ switch have two parameter: (acg) (bg)"
         (when (assoc-value res "success")
           (assoc-value res "imgurl")))
     (error (c)
-      (format t "[syxz get picture Error]: ~A~%" c)
-      nil)))
+      (log:error "[syxz get picture Error]: ~A~%" c))))
 
 (defun random-picture (&optional (webs (list #'loli-get #'vvhan-get #'syxz-get #'hanxing-get)))
   (when (listp webs)

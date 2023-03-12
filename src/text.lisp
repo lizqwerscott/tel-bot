@@ -16,9 +16,9 @@
   (if (= 200 (assoc-value data "code"))
       (assoc-value data "newslist")
       (let ((errormsg (format nil
-                             "[error][tianx]:~A"
-                             (assoc-value data "msg"))))
-        (format t "~A~%" errormsg)
+                              "[error][tianx]:~A"
+                              (assoc-value data "msg"))))
+        (log:error "~A~%" errormsg)
         (error errormsg))))
 
 (defun get-zw (path)

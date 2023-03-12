@@ -132,12 +132,8 @@
           (commands-match-and-use value
                                   (assoc-value res
                                                "slots"))
-          (progn
-            (log:info "not find intent: ~A~%" (assoc-value res "INTENT"))
-            nil)))
-    (progn
-      (log:info "not predict intent: ~A~%" text)
-      nil)))
+          (log:info "not find intent: ~A~%" (assoc-value res "INTENT"))))
+    (log:info "not predict intent: ~A~%" text)))
 
 (defun handle-message (text)
   (when text

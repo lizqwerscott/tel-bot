@@ -28,7 +28,7 @@
   (if (= 200 (assoc-value data "status"))
       (assoc-value data "data")
       (progn
-        (format t "[Error]:~A~%" data)
+        (log:error "~A" data)
         (assoc-value data "data"))))
 
 (defun manager-status-simplified ()
@@ -90,7 +90,7 @@
             (elt (car (cdr (car *instances*)))
                  (- index 1)))
     (error (c)
-      (format t "Not have ~A instance" index))))
+      (log:error "Not have ~A instance" index))))
 
 (defun manager-instance-command (command uuid remote-uuid &optional (other-args nil))
   (handle-data

@@ -92,8 +92,7 @@
                  save-path))
         save-path)
     (error (c)
-      (format t "[download-url Error]: ~A~%" c)
-      nil)))
+      (log:error "[download-url Error]: ~A" c))))
 
 (defconfig (:tel-bot t)
     ((bot-token :type :str)

@@ -10,7 +10,7 @@
   (let ((code (assoc-value data "code")))
     (if (= code 200)
         (assoc-value data result-name)
-        (format t "[Error][song]:~A~%" data))))
+        (log:error "[song]: ~A" data))))
 
 (defun check-music (id)
   (assoc-value (web-get *address*
@@ -69,8 +69,7 @@
                  finish-path))
         finish-path)
     (error (c)
-      (format t "[fix-song Error]: ~A~%" c)
-      nil)))
+      (log:error t "[fix-song Error]: ~A~%" c))))
 
 (defun download-song (song &optional (path (ensure-directories-exist
                                             (merge-pathnames "songs/"
