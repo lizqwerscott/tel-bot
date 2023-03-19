@@ -147,6 +147,10 @@
                (ask text)))))))
 
 (defmethod on-message ((bot manager-bot) text)
+  (format t
+          "raw-data: ~A~%"
+          (cl-telegram-bot/message:get-raw-data
+           cl-telegram-bot/message::*current-message*))
   (let ((words (trim text)))
     (format t "message: ~A~%" words)
     (handle-message

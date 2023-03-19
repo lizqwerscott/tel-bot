@@ -13,7 +13,8 @@
                "cl-telegram-bot"
                "random-state"
                "lzputils"
-               "easy-config")
+               "easy-config"
+               "websocket-driver-client")
   :components ((:module "src"
                 :components
                 ((:file "head")
@@ -26,6 +27,7 @@
                  (:file "music")
                  (:file "picture")
                  (:file "minecraft")
+                 (:file "wxapi")
                  (:file "main"))))
   :description ""
   :in-order-to ((test-op (test-op "tel-bot/tests"))))
