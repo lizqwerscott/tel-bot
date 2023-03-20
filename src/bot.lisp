@@ -23,6 +23,8 @@
    :defcommand
    :add-command
 
+   :add-reply-message
+
    :manager-bot
    :make-manager-bot
 
@@ -146,22 +148,56 @@
              (when (not (handle-command text))
                (ask text)))))))
 
+;; (defvar *test* '(text 嗯 reply_to_message
+;;                  (text 微信消息{21549530346@chatroom}
+;;                   [譕畏.]  in [骑猪找驴🥱🥱🥱] say:
+;;                   我看好多人都不填
+;;                   date 1679281124 chat
+;;                   (type private username lizqwer last_name scott first_name lizqwer
+;;                    id 1060310332)
+;;                   from
+;;                   (username kk_manage_bot first_name 初音未来 is_bot T id 5706957622)
+;;                   message_id 2470)
+;;                  date 1679281200 chat
+;;                  (type private username lizqwer last_name scott first_name lizqwer id
+;;                   1060310332)
+;;                  from
+;;                  (language_code zh-hans username lizqwer last_name scott first_name
+;;                   lizqwer is_bot NIL id 1060310332)
+;;                  message_id 2472))
+
+(defvar *reply-message* nil)
+
+(defun add-reply-message (fn)
+  (setf *reply-message*
+        (append1 *reply-message*
+                 fn)))
+
 (defmethod on-message ((bot manager-bot) text)
-  (format t
-          "raw-data: ~A~%"
-          (cl-telegram-bot/message:get-raw-data
-           cl-telegram-bot/message::*current-message*))
-  (let ((words (trim text)))
-    (format t "message: ~A~%" words)
-    (handle-message
-     (trim
-      (if (is-group)
-          (when (start-with-words? words
-                                   '("初音" "miku" "初音未来" "@kk_manage_bot"))
-            (replace-all-l '("初音" "miku" "初音未来" "@kk_manage_bot")
-                           ""
-                           text))
-          text)))))
+  (let ((raw-data (cl-telegram-bot/message:get-raw-data
+                   cl-telegram-bot/message::*current-message*)))
+    ;; (format t
+    ;;         "raw-data: ~A~%"
+    ;;         (third raw-data))
+    (if (string= "reply_to_message" (third raw-data))
+        (progn
+          (format t "is reply~%")
+          (dolist (i *reply-message*)
+            (handler-case
+                (apply i `(,text ,(fourth raw-data)))
+              (error (c)
+                (reply (format nil "Error: ~A~%" c))))))
+        (let ((words (trim text)))
+          (format t "message: ~A~%" words)
+          (handle-message
+           (trim
+            (if (is-group)
+                (when (start-with-words? words
+                                         '("初音" "miku" "初音未来" "@kk_manage_bot"))
+                  (replace-all-l '("初音" "miku" "初音未来" "@kk_manage_bot")
+                                 ""
+                                 text))
+                text)))))))
 
 (defmethod on-command ((bot manager-bot) (command (eql :help)) text)
   (reply (help)))

@@ -7,7 +7,8 @@
    :tel-bot.bot
    :tel-bot.task
    :tel-bot.text
-   :tel-bot.picture)
+   :tel-bot.picture
+   :tel-bot.wxapi)
   (:export
    :start
    :stop))
@@ -89,9 +90,11 @@
 
 (defun start (&optional (is-debug nil))
   (start-bot)
+  (start-ws)
   (if is-debug
       (make-thread #'run)
       (run)))
 
 (defun stop ()
-  (stop-bot))
+  (stop-bot)
+  (stop-ws))
