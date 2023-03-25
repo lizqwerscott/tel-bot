@@ -46,8 +46,9 @@
 (load-group-link)
 
 (defun name-get-id (name)
-  (and (find name *id-user* :test #'string= :key #'(lambda (x) (cdr x)))
-     (find name *id-room* :test #'string= :key #'(lambda (x) (cdr x)))))
+  (car
+   (or (find name *id-user* :test #'string= :key #'(lambda (x) (cdr x)))
+      (find name *id-room* :test #'string= :key #'(lambda (x) (cdr x))))))
 
 (defun generate-wx-message (data)
   (format nil
@@ -142,5 +143,18 @@
          (if (string= "" r-text)
              "现在没有对应表"
              (format nil (format nil "以下是对应表:~%~A" r-text)))))))
+
+(defcommand
+    (:sendwx "手动发送消息到指定的群或者人" chat text)
+    (let ((data (str:split " " text)))
+      (if (> (length data) 1)
+          (let ((id (name-get-id (car data))))
+            (if id
+                (progn
+                  (send-wx-message id (str:join " " (cdr data)))
+                  (reply
+                   (format nil "已经发送给: ~A" id)))
+                (reply "没有找到这个人或者群")))
+          (reply "参数不够"))))
 
 (in-package :cl-user)
