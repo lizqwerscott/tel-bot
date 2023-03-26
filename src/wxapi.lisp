@@ -92,14 +92,7 @@
                         (if (> (length content) 5)
                             "~%"
                             " ")
-                        content)))
-    ;; (format nil
-    ;;         "微信消息{~A}~%~A~%"
-    ;;         (if roomp
-    ;;             (assoc-value data "room_id")
-    ;;             (assoc-value data "sender_id"))
-    ;;         )
-    ))
+                        content)))))
 
 (wsd:on :message *client*
         (lambda (message)
@@ -116,9 +109,7 @@
                                           :|message_id|)))
                     (setf (gethash message-id
                                    *last-message-id*)
-                          (if (assoc-value data "roomp")
-                              (assoc-value data "room_id")
-                              (assoc-value data "sender_id"))))
+                          (assoc-value data "wx_id")))
                   ;; 记录上次的消息
                   (setf (gethash (assoc-value data "group")
                                  *last-say-message*)
@@ -177,11 +168,8 @@
                                        #'(lambda (text)
                                            (let ((last-message (gethash k *last-say-message*)))
                                              (when last-message
-                                               (send-wx-message (if (assoc-value last-message "roomp")
-                                                                    (assoc-value last-message "room_id")
-                                                                    (assoc-value last-message "sender_id"))
-                                                                text)  ))
-                                           )))
+                                               (send-wx-message (assoc-value last-message "wx_id")
+                                                                text))))))
          *group-link*)
 
 (defcommand
