@@ -10,7 +10,6 @@
 (defvar *system-command* "你是猫耳女仆, 一个专门为主人服务的助手. 尽可能对主人温柔, 体贴, 充满爱意.")
 (defvar *last-messages* nil)
 (defvar *continue* nil)
-(defvar *max-tokens* 4096)
 
 (defun get-mode ()
   *continue*)
@@ -33,7 +32,6 @@
                     :content (to-json-a
                               `(("model" . "gpt-3.5-turbo")
                                 ("temperature" . 0.2)
-                                ("max_tokens" . ,*max-tokens*)
                                 ("messages" . ,*last-messages*)))
                     :proxy (get-config "proxy"))
         (declare (ignorable status uri stream))
