@@ -154,6 +154,18 @@
        (format t "send message:~A: ~A~%" id text)
        (send-wx-message id text))))
 
+(maphash #'(lambda (k v)
+             (add-special-group-handle v
+                                       #'(lambda (text)
+                                           (let ((last-message (gethash k *last-say-message*)))
+                                             (when last-message
+                                               (send-wx-message (if (assoc-value last-message "roomp")
+                                                                    (assoc-value last-message "room_id")
+                                                                    (assoc-value last-message "sender_id"))
+                                                                text)  ))
+                                           )))
+         *group-link*)
+
 (defcommand
     (:linkgroup "添加此会话到微信分组" chat text)
     (let ((chat-id (cl-telegram-bot/chat:get-chat-id chat))

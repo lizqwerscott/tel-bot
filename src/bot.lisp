@@ -25,6 +25,8 @@
 
    :add-reply-message
 
+   :add-special-group-handle
+
    :manager-bot
    :make-manager-bot
 
@@ -173,9 +175,18 @@
         (append1 *reply-message*
                  fn)))
 
+(defvar *special-group-handle* (make-hash-table :test #'equal))
+
+(defun add-special-group-handle (group fn)
+  (setf (gethash group
+                 *special-group-handle*)
+        fn))
+
 (defmethod on-message ((bot manager-bot) text)
   (let ((raw-data (cl-telegram-bot/message:get-raw-data
-                   cl-telegram-bot/message::*current-message*)))
+                   cl-telegram-bot/message::*current-message*))
+        (chat-id (cl-telegram-bot/chat:get-chat-id
+                  (get-current-chat))))
     ;; (format t
     ;;         "raw-data: ~A~%"
     ;;         (third raw-data))
@@ -187,17 +198,23 @@
                 (apply i `(,text ,(fourth raw-data)))
               (error (c)
                 (reply (format nil "Error: ~A~%" c))))))
-        (let ((words (trim text)))
-          (format t "message: ~A~%" words)
-          (handle-message
-           (trim
-            (if (is-group)
-                (when (start-with-words? words
-                                         '("初音" "miku" "初音未来" "@kk_manage_bot"))
-                  (replace-all-l '("初音" "miku" "初音未来" "@kk_manage_bot")
-                                 ""
-                                 text))
-                text)))))))
+        (let ((fn (gethash chat-id *special-group-handle*)))
+          (if fn
+              (handler-case
+                  (funcall fn text)
+                (error (c)
+                  (reply (format nil "Error: ~A~%" c))))
+              (let ((words (trim text)))
+                (format t "message: ~A~%" words)
+                (handle-message
+                 (trim
+                  (if (is-group)
+                      (when (start-with-words? words
+                                               '("初音" "miku" "初音未来" "@kk_manage_bot"))
+                        (replace-all-l '("初音" "miku" "初音未来" "@kk_manage_bot")
+                                       ""
+                                       text))
+                      text)))))))))
 
 (defmethod on-command ((bot manager-bot) (command (eql :help)) text)
   (reply (help)))
