@@ -189,13 +189,13 @@
                   (get-current-chat))))
     ;; (format t
     ;;         "raw-data: ~A~%"
-    ;;         (third raw-data))
+    ;;         (fourth raw-data))
     (if (string= "reply_to_message" (third raw-data))
         (progn
           (format t "is reply~%")
           (dolist (i *reply-message*)
             (handler-case
-                (apply i `(,text ,(fourth raw-data)))
+                (apply i `(,text ,(last1 (fourth raw-data))))
               (error (c)
                 (reply (format nil "Error: ~A~%" c))))))
         (let ((fn (gethash chat-id *special-group-handle*)))

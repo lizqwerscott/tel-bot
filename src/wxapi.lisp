@@ -16,6 +16,8 @@
 (defvar *group-link* (make-hash-table :test #'equal))
 (defvar *last-say-message* (make-hash-table :test #'equal))
 
+(defvar *last-message-id* (make-hash-table))
+
 (defun json-to-hash-table (json)
   (dolist (kv json)
     (setf (gethash (car kv)
@@ -65,37 +67,39 @@
         (last-message (gethash (assoc-value data "group")
                                *last-say-message*)))
     (format nil
-            "微信消息{~A}~%~A~%"
-            (if roomp
-                (assoc-value data "room_id")
-                (assoc-value data "sender_id"))
-            (format nil
-                    (if (and last-message
-                           (xor roomp
-                                (assoc-value last-message
-                                             "roomp")))
-                        (if (string= (assoc-value data "sender_id")
-                                     (assoc-value last-message "sender_id"))
-                            (format nil
-                                    "~A"
-                                    content)
-                            (format nil
-                                    "[~A] say:~A~A"
-                                    (assoc-value data "sender_name")
-                                    (if (> (length content) 5)
-                                        "~%"
-                                        " ")
-                                    content))
-                        (format nil
-                                "[~A]~A say:~A~A"
-                                (assoc-value data "sender_name")
-                                (if roomp
-                                    (format nil " in [~A]" (assoc-value data "room_name"))
-                                    "")
-                                (if (> (length content) 5)
-                                    "~%"
-                                    " ")
-                                content))))))
+            (if (and last-message
+                   (xor roomp
+                        (assoc-value last-message
+                                     "roomp")))
+                (if (string= (assoc-value data "sender_id")
+                             (assoc-value last-message "sender_id"))
+                    (format nil
+                            "~A"
+                            content)
+                    (format nil
+                            "[~A] say:~A~A"
+                            (assoc-value data "sender_name")
+                            (if (> (length content) 5)
+                                "~%"
+                                " ")
+                            content))
+                (format nil
+                        "[~A]~A say:~A~A"
+                        (assoc-value data "sender_name")
+                        (if roomp
+                            (format nil " in [~A]" (assoc-value data "room_name"))
+                            "")
+                        (if (> (length content) 5)
+                            "~%"
+                            " ")
+                        content)))
+    ;; (format nil
+    ;;         "微信消息{~A}~%~A~%"
+    ;;         (if roomp
+    ;;             (assoc-value data "room_id")
+    ;;             (assoc-value data "sender_id"))
+    ;;         )
+    ))
 
 (wsd:on :message *client*
         (lambda (message)
@@ -104,11 +108,17 @@
                 (let ((wx-message (generate-wx-message data))
                       (group-name (gethash (assoc-value data "group")
                                            *group-link*)))
-                  (if group-name
-                      (send-text group-name
-                                 wx-message)
-                      (send-text (get-master-chat)
-                                 wx-message))
+                  (let ((message-id (getf (if group-name
+                                              (send-text group-name
+                                                         wx-message)
+                                              (send-text (get-master-chat)
+                                                         wx-message))
+                                          :|message_id|)))
+                    (setf (gethash message-id
+                                   *last-message-id*)
+                          (if (assoc-value data "roomp")
+                              (assoc-value data "room_id")
+                              (assoc-value data "sender_id"))))
                   ;; 记录上次的消息
                   (setf (gethash (assoc-value data "group")
                                  *last-say-message*)
@@ -148,11 +158,19 @@
                     ("content" . ,message)
                     ("wx_id" . ,id)))))
 
+;; (add-reply-message
+;;  #'(lambda (text reply-message)
+;;      (let ((id (text-get-id (second reply-message))))
+;;        (format t "send message:~A: ~A~%" id text)
+;;        (send-wx-message id text))))
+
 (add-reply-message
- #'(lambda (text reply-message)
-     (let ((id (text-get-id (second reply-message))))
-       (format t "send message:~A: ~A~%" id text)
-       (send-wx-message id text))))
+ #'(lambda (text reply-id)
+     (let ((id (gethash reply-id *last-message-id*)))
+       (when id
+         (format t "send message:~A: ~A~%" id text)
+         (send-wx-message id text)))))
+
 
 (maphash #'(lambda (k v)
              (add-special-group-handle v
