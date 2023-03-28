@@ -61,9 +61,14 @@
      (and (not a)
         (not b))))
 
+(defun get-content (data)
+  (if (string= (assoc-value data "message_type") "picture")
+      "[图片]"
+      (assoc-value data "content")))
+
 (defun generate-wx-message (data)
   (let ((roomp (assoc-value data "roomp"))
-        (content (assoc-value data "content"))
+        (content (get-content data))
         (last-message (gethash (assoc-value data "group")
                                *last-say-message*)))
     (format nil
