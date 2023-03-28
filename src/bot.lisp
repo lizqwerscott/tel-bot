@@ -35,6 +35,7 @@
 
    :send-text
    :send-picture
+   :send-local-picture
    :send-audio
 
    :reply-text
@@ -251,27 +252,44 @@
                                             chat-id)
                                         text))
 
-(defun send-picture (chat-id url)
-  (cl-telegram-bot/message:send-photo *bot*
-                                      (if (numberp chat-id)
-                                          (get-chat-by-id *bot* chat-id)
-                                          chat-id)
-                                      url))
+(defun send-picture (chat-id photo &optional (title ""))
+  (if (pathnamep photo)
+      (jonathan:parse
+       (uiop:run-program
+        (format nil
+                "proxychains4 python ~A ~A ~A '~A' '~A'"
+                (merge-pathnames "scripts/send_local_photo.py"
+                                 (asdf:system-source-directory :tel-bot))
+                (get-config "bot-token")
+                (if (numberp chat-id)
+                    chat-id
+                    (get-chat-id chat-id))
+                (truename photo)
+                title)
+        :output :string))
+      (cl-telegram-bot/message:send-photo *bot*
+                                          (if (numberp chat-id)
+                                              (get-chat-by-id *bot* chat-id)
+                                              chat-id)
+                                          photo
+                                          :caption title)))
 
 (defun send-audio (chat-id audio title performer)
   (if (pathnamep audio)
-      (run-shell
-       (format nil
-               "proxychains4 python ~A ~A ~A ~A '~A' '~A'"
-               (merge-pathnames "scripts/send_audio.py"
-                                (asdf:system-source-directory :tel-bot))
-               (get-config "bot-token")
-               (if (numberp chat-id)
-                   chat-id
-                   (get-chat-id chat-id))
-               audio
-               title
-               performer))
+      (jonathan:parse
+       (uiop:run-program
+        (format nil
+                "proxychains4 python ~A ~A ~A ~A '~A' '~A'"
+                (merge-pathnames "scripts/send_audio.py"
+                                 (asdf:system-source-directory :tel-bot))
+                (get-config "bot-token")
+                (if (numberp chat-id)
+                    chat-id
+                    (get-chat-id chat-id))
+                audio
+                title
+                performer)
+        :output :string))
       (cl-telegram-bot/message:send-audio *bot*
                                           (if (numberp chat-id)
                                               chat-id

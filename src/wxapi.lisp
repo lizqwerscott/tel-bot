@@ -1,6 +1,7 @@
 (defpackage tel-bot.wxapi
+  (:import-from :quri :make-uri)
   (:import-from :str :trim)
-  (:use :cl :cl-telegram-bot :tel-bot.bot :tel-bot.web :websocket-driver-client :lzputils.json :easy-config :lzputils.used)
+  (:use :cl :cl-telegram-bot :tel-bot.bot :tel-bot.web :websocket-driver-client :lzputils.json :easy-config :lzputils.used :tel-bot.head)
   (:export
    :start-ws
    :stop-ws
@@ -63,7 +64,7 @@
 
 (defun get-content (data)
   (if (string= (assoc-value data "message_type") "picture")
-      "[图片]"
+      ""
       (assoc-value data "content")))
 
 (defun generate-wx-message (data)
@@ -99,6 +100,27 @@
                             " ")
                         content)))))
 
+(defun send-message-wx (type id content)
+  (getf (if (string= type "text")
+            (send-text id
+                       content)
+            (if (string= type "picture")
+                (send-picture id
+                              (first content)
+                              (second content))))
+        :|message_id|))
+
+(defun download-picture (file-name &optional (path (ensure-directories-exist
+                                                    (merge-pathnames "pictures/"
+                                                                     (get-data-path)))))
+  (download-url (make-uri :scheme "http"
+                          :host "10.0.96.8"
+                          :port 5556
+                          :path "/picture/get"
+                          :query `(("thumb" . ,file-name)))
+                (merge-pathnames file-name
+                                 path)))
+
 (wsd:on :message *client*
         (lambda (message)
           (let ((data (parse message)))
@@ -106,12 +128,15 @@
                 (let ((wx-message (generate-wx-message data))
                       (group-name (gethash (assoc-value data "group")
                                            *group-link*)))
-                  (let ((message-id (getf (if group-name
-                                              (send-text group-name
-                                                         wx-message)
-                                              (send-text (get-master-chat)
-                                                         wx-message))
-                                          :|message_id|)))
+                  (let ((message-id (send-message-wx (assoc-value data "message_type")
+                                                     (if group-name
+                                                         group-name
+                                                         (get-master-chat))
+                                                     (if (string= (assoc-value data "message_type") "picture")
+                                                         (list
+                                                          (download-picture (assoc-value data '("content" "thumb_name")))
+                                                          wx-message)
+                                                         wx-message))))
                     (setf (gethash message-id
                                    *last-message-id*)
                           (assoc-value data "wx_id")))
