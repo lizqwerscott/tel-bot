@@ -82,25 +82,19 @@
                     (format nil
                             "~A"
                             content)
-                    (if (string= (assoc-value data "room_id")
-                                 (assoc-value last-message "room_id"))
-                        (format nil
-                                "[~A] say:~A~A"
-                                (assoc-value data "sender_name")
-                                (if (> (length content) 5)
-                                    "~%"
-                                    " ")
-                                content)
-                        (format nil
-                                "[~A]~A say:~A~A"
-                                (assoc-value data "sender_name")
-                                (if roomp
-                                    (format nil " in [~A]" (assoc-value data "room_name"))
-                                    "")
-                                (if (> (length content) 5)
-                                    "~%"
-                                    " ")
-                                content)))
+                    (format nil
+                            "[~A]~A say:~A~A"
+                            (assoc-value data "sender_name")
+                            (if (and roomp
+                                   (not
+                                    (string= (assoc-value data "room_id")
+                                             (assoc-value last-message "room_id"))))
+                                (format nil " in [~A]" (assoc-value data "room_name"))
+                                "")
+                            (if (> (length content) 5)
+                                "~%"
+                                " ")
+                            content))
                 (format nil
                         "[~A]~A say:~A~A"
                         (assoc-value data "sender_name")
