@@ -82,13 +82,25 @@
                     (format nil
                             "~A"
                             content)
-                    (format nil
-                            "[~A] say:~A~A"
-                            (assoc-value data "sender_name")
-                            (if (> (length content) 5)
-                                "~%"
-                                " ")
-                            content))
+                    (if (string= (assoc-value data "room_id")
+                                 (assoc-value last-message "room_id"))
+                        (format nil
+                                "[~A] say:~A~A"
+                                (assoc-value data "sender_name")
+                                (if (> (length content) 5)
+                                    "~%"
+                                    " ")
+                                content)
+                        (format nil
+                                "[~A]~A say:~A~A"
+                                (assoc-value data "sender_name")
+                                (if roomp
+                                    (format nil " in [~A]" (assoc-value data "room_name"))
+                                    "")
+                                (if (> (length content) 5)
+                                    "~%"
+                                    " ")
+                                content)))
                 (format nil
                         "[~A]~A say:~A~A"
                         (assoc-value data "sender_name")
@@ -117,7 +129,7 @@
                           :host "10.0.96.8"
                           :port 5556
                           :path "/picture/get"
-                          :query `(("thumb" . ,file-name)))
+                          :query `(("name" . ,file-name)))
                 (merge-pathnames file-name
                                  path)))
 
@@ -132,9 +144,12 @@
                                                      (if group-name
                                                          group-name
                                                          (get-master-chat))
-                                                     (if (string= (assoc-value data "message_type") "picture")
+                                                     (if (and (string= (assoc-value data "message_type") "picture")
+                                                            (assoc-value data '("content" "havep")))
                                                          (list
-                                                          (download-picture (assoc-value data '("content" "thumb_name")))
+                                                          (download-picture
+                                                           (assoc-value data
+                                                                        '("content" "pic" "name")))
                                                           wx-message)
                                                          wx-message))))
                     (setf (gethash message-id
