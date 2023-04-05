@@ -188,27 +188,31 @@
                     ("content" . ,message)
                     ("wx_id" . ,id)))))
 
-;; (add-reply-message
-;;  #'(lambda (text reply-message)
-;;      (let ((id (text-get-id (second reply-message))))
-;;        (format t "send message:~A: ~A~%" id text)
-;;        (send-wx-message id text))))
+(defun send-wx-picture (id pic-url)
+  (wsd:send-text *client*
+                 (to-json-a
+                  `(("action" . "send_picture")
+                    ("url" . ,pic-url)
+                    ("wx_id" . ,id)))))
+
+(defun reply-message (id message)
+  (if (string= (car message) "text")
+      (send-wx-message id (cdr message))
+      (if (find (car message) '("photo" "sticker") :test #'string=)
+          (send-wx-picture id (cdr message)))))
 
 (add-reply-message
- #'(lambda (text reply-id)
-     (let ((id (gethash reply-id *last-message-id*)))
-       (when id
-         (format t "send message:~A: ~A~%" id text)
-         (send-wx-message id text)))))
-
+ #'(lambda (message reply-id)
+     (alexandria:when-let (id (gethash reply-id *last-message-id*))
+       (format t "send message:~A: ~A~%" id message)
+       (reply-message id message))))
 
 (maphash #'(lambda (k v)
              (add-special-group-handle v
-                                       #'(lambda (text)
-                                           (let ((last-message (gethash k *last-say-message*)))
-                                             (when last-message
-                                               (send-wx-message (assoc-value last-message "wx_id")
-                                                                text))))))
+                                       #'(lambda (message)
+                                           (alexandria:when-let (last-message (gethash k *last-say-message*))
+                                             (reply-message (assoc-value last-message "wx_id")
+                                                            message)))))
          *group-link*)
 
 (defcommand

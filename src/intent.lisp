@@ -25,9 +25,10 @@
       (log:error "predict post error ~A" c))))
 
 (defun handle-data (data)
-  (if (= 200 (assoc-value data "code"))
-      (assoc-value data "data")
-      (log:error "predict code: ~A, msg: ~A" (assoc-value data "code") (assoc-value data "msg"))))
+  (when data
+    (if (= 200 (assoc-value data "code"))
+        (assoc-value data "data")
+        (log:error "predict code: ~A, msg: ~A" (assoc-value data "code") (assoc-value data "msg")))))
 
 (defvar *number-chinese* (list "一" "二" "三" "四" "五" "六" "七" "八" "九" "十"))
 
