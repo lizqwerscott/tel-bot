@@ -8,7 +8,7 @@
    ))
 (in-package :tel-bot.wxapi)
 
-(defvar *client* (wsd:make-client "ws://10.0.96.67:5757"))
+(defvar *client* (wsd:make-client "ws://10.0.96.8:5757"))
 
 (defvar *id-user* nil)
 (defvar *id-room* nil)
