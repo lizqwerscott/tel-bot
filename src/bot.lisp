@@ -36,6 +36,7 @@
    :get-file-url
 
    :send-text
+   :send-markdown
    :send-picture
    :send-local-picture
    :send-audio
@@ -278,6 +279,18 @@
                                             (get-chat-by-id *bot* chat-id)
                                             chat-id)
                                         text))
+
+(defun send-markdown (chat-id text)
+  (cl-telegram-bot/message:send-message *bot*
+                                        (if (numberp chat-id)
+                                            (get-chat-by-id *bot* chat-id)
+                                            chat-id)
+                                        text
+                                        :parse-mode
+                                        "MarkdownV2"))
+
+;; (defun test ()
+;;   (send-markdown (get-master-chat) "*你好* 哈哈"))
 
 (defun send-picture (chat-id photo &optional (title ""))
   (if (pathnamep photo)

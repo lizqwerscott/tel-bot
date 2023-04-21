@@ -8,7 +8,7 @@
    ))
 (in-package :tel-bot.wxapi)
 
-(defvar *client* (wsd:make-client "ws://127.0.0.1:5757"))
+(defvar *client* (wsd:make-client "ws://10.0.96.37:5757"))
 
 (defvar *id-user* nil)
 (defvar *id-room* nil)
@@ -83,23 +83,23 @@
                             "~A"
                             content)
                     (format nil
-                            "[~A]~A say:~A~A"
+                            "*~A*~A:~A~A"
                             (assoc-value data "sender_name")
                             (if (and roomp
                                    (not
                                     (string= (assoc-value data "room_id")
                                              (assoc-value last-message "room_id"))))
-                                (format nil " in [~A]" (assoc-value data "room_name"))
+                                (format nil " in :~A" (assoc-value data "room_name"))
                                 "")
                             (if (> (length content) 5)
                                 "~%"
                                 " ")
                             content))
                 (format nil
-                        "[~A]~A say:~A~A"
+                        "*~A*~A:~A~A"
                         (assoc-value data "sender_name")
                         (if roomp
-                            (format nil " in [~A]" (assoc-value data "room_name"))
+                            (format nil " in :~A" (assoc-value data "room_name"))
                             "")
                         (if (> (length content) 5)
                             "~%"
@@ -108,8 +108,8 @@
 
 (defun send-message-wx (type id content)
   (getf (if (string= type "text")
-            (send-text id
-                       content)
+            (send-markdown id
+                           content)
             (if (string= type "picture")
                 (send-picture id
                               (first content)
