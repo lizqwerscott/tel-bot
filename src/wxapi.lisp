@@ -89,7 +89,7 @@
                                    (not
                                     (string= (assoc-value data "room_id")
                                              (assoc-value last-message "room_id"))))
-                                (format nil " in :~A" (assoc-value data "room_name"))
+                                (format nil " in #~A" (assoc-value data "room_name"))
                                 "")
                             (if (> (length content) 5)
                                 "~%"
@@ -99,7 +99,7 @@
                         "*~A*~A:~A~A"
                         (assoc-value data "sender_name")
                         (if roomp
-                            (format nil " in :~A" (assoc-value data "room_name"))
+                            (format nil " in #~A" (assoc-value data "room_name"))
                             "")
                         (if (> (length content) 5)
                             "~%"
