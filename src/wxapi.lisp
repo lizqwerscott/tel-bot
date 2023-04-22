@@ -131,28 +131,33 @@
         (lambda (message)
           (let ((data (parse message)))
             (if (string= "recive_message" (assoc-value data "type"))
-                (let ((wx-message (generate-wx-message data))
-                      (group-name (gethash (assoc-value data "group")
-                                           *group-link*)))
-                  (let ((message-id (send-message-wx (assoc-value data "message_type")
-                                                     (if group-name
-                                                         group-name
-                                                         (get-master-chat))
-                                                     (if (and (string= (assoc-value data "message_type") "picture")
-                                                            (assoc-value data '("content" "havep")))
-                                                         (list
-                                                          (download-picture
-                                                           (assoc-value data
-                                                                        '("content" "pic" "name")))
-                                                          wx-message)
-                                                         wx-message))))
-                    (setf (gethash message-id
-                                   *last-message-id*)
-                          (assoc-value data "wx_id")))
-                  ;; 记录上次的消息
-                  (setf (gethash (assoc-value data "group")
-                                 *last-say-message*)
-                        data))
+                ;;; 不发送自己在群里面发的图片
+                (when (not (and (string= "self" (assoc-value data "sender_name"))
+                            (and (string= (assoc-value data "message_type") "picture")
+                               (assoc-value data '("content" "havep")))))
+                  (let ((wx-message (generate-wx-message data))
+                        (group-name (gethash (assoc-value data "group")
+                                             *group-link*)))
+
+                    (let ((message-id (send-message-wx (assoc-value data "message_type")
+                                                       (if group-name
+                                                           group-name
+                                                           (get-master-chat))
+                                                       (if (and (string= (assoc-value data "message_type") "picture")
+                                                              (assoc-value data '("content" "havep")))
+                                                           (list
+                                                            (download-picture
+                                                             (assoc-value data
+                                                                          '("content" "pic" "name")))
+                                                            wx-message)
+                                                           wx-message))))
+                      (setf (gethash message-id
+                                     *last-message-id*)
+                            (assoc-value data "wx_id")))
+                    ;; 记录上次的消息
+                    (setf (gethash (assoc-value data "group")
+                                   *last-say-message*)
+                          data)))
                 (when (string= "user_list" (assoc-value data "type"))
                   (setf *id-user* (assoc-value data "user"))
                   (setf *id-room* (assoc-value data "room"))
