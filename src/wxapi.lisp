@@ -120,7 +120,7 @@
                                                     (merge-pathnames "pictures/"
                                                                      (get-data-path)))))
   (download-url (make-uri :scheme "http"
-                          :host "10.0.96.8"
+                          :host "192.168.2.198"
                           :port 5556
                           :path "/picture/get"
                           :query `(("name" . ,file-name)))
