@@ -37,6 +37,7 @@
 
    :send-text
    :send-markdown
+   :send-html
    :send-picture
    :send-local-picture
    :send-audio
@@ -288,6 +289,15 @@
                                         text
                                         :parse-mode
                                         "MarkdownV2"))
+
+(defun send-html (chat-id html)
+  (cl-telegram-bot/message:send-message *bot*
+                                        (if (numberp chat-id)
+                                            (get-chat-by-id *bot* chat-id)
+                                            chat-id)
+                                        html
+                                        :parse-mode
+                                        "HTML"))
 
 ;; (defun test ()
 ;;   (send-markdown (get-master-chat) "*你好* 哈哈"))

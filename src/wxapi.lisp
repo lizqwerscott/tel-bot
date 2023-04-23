@@ -65,7 +65,19 @@
 (defun get-content (data)
   (if (string= (assoc-value data "message_type") "picture")
       ""
-      (assoc-value data "content")))
+      (let ((content (assoc-value data "content")))
+        (if (str:starts-with? "/html"
+                              content)
+            (str:replace-first "/html"
+                               ""
+                               content)
+            (replace-all-l (list "&")
+                           "&amp;"
+                           (replace-all-l (list ">")
+                                          "&gt;"
+                                          (replace-all-l (list "<")
+                                                         "&lt;"
+                                                         content)))))))
 
 (defun generate-wx-message (data)
   (let ((roomp (assoc-value data "roomp"))
@@ -83,23 +95,23 @@
                             "~A"
                             content)
                     (format nil
-                            "*~A*~A:~A~A"
+                            "<b>~A</b>~A:~A~A"
                             (assoc-value data "sender_name")
                             (if (and roomp
                                    (not
                                     (string= (assoc-value data "room_id")
                                              (assoc-value last-message "room_id"))))
-                                (format nil " in *~A*" (assoc-value data "room_name"))
+                                (format nil " in #~A" (assoc-value data "room_name"))
                                 "")
                             (if (> (length content) 5)
                                 "~%"
                                 " ")
                             content))
                 (format nil
-                        "*~A*~A:~A~A"
+                        "<b>~A</b>~A:~A~A"
                         (assoc-value data "sender_name")
                         (if roomp
-                            (format nil " in *~A*" (assoc-value data "room_name"))
+                            (format nil " in #~A" (assoc-value data "room_name"))
                             "")
                         (if (> (length content) 5)
                             "~%"
@@ -108,8 +120,8 @@
 
 (defun send-message-wx (type id content)
   (getf (if (string= type "text")
-            (send-markdown id
-                           content)
+            (send-html id
+                       content)
             (if (string= type "picture")
                 (send-picture id
                               (first content)
