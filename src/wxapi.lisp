@@ -119,14 +119,17 @@
                         content)))))
 
 (defun send-message-wx (type id content)
-  (getf (if (string= type "text")
-            (send-html id
-                       content)
-            (if (string= type "picture")
-                (send-picture id
-                              (first content)
-                              (second content))))
-        :|message_id|))
+  (handler-case
+      (getf (if (string= type "text")
+                (send-html id
+                           content)
+                (if (string= type "picture")
+                    (send-picture id
+                                  (first content)
+                                  (second content))))
+            :|message_id|)
+    (error (c)
+      (log:error "send telegram message error:~A" content))))
 
 (defun download-picture (file-name &optional (path (ensure-directories-exist
                                                     (merge-pathnames "pictures/"
@@ -150,7 +153,6 @@
                   (let ((wx-message (generate-wx-message data))
                         (group-name (gethash (assoc-value data "group")
                                              *group-link*)))
-
                     (let ((message-id (send-message-wx (assoc-value data "message_type")
                                                        (if group-name
                                                            group-name
@@ -163,18 +165,19 @@
                                                                           '("content" "pic" "name")))
                                                             wx-message)
                                                            wx-message))))
-                      (setf (gethash message-id
-                                     *last-message-id*)
-                            (assoc-value data "wx_id")))
-                    ;; 记录上次的消息
-                    (setf (gethash (assoc-value data "group")
-                                   *last-say-message*)
-                          data)))
+                      (when message-id
+                        (setf (gethash message-id
+                                       *last-message-id*)
+                              (assoc-value data "wx_id"))
+                        ;; 记录上次的消息
+                        (setf (gethash (assoc-value data "group")
+                                       *last-say-message*)
+                              data)))))
                 (when (string= "user_list" (assoc-value data "type"))
                   (setf *id-user* (assoc-value data "user"))
                   (setf *id-room* (assoc-value data "room"))
                   (setf *group-list* (assoc-value data "groups")))))
-          (format t "~A~%" message)))
+          (log:info "recive message: ~A" message)))
 
 (wsd:on :open *client*
         (lambda ()
