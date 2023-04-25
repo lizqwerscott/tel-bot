@@ -183,6 +183,18 @@
         (lambda ()
           (format t "Connected~%")))
 
+(wsd:on :error *client*
+        (lambda (error)
+          (log:error "Wxapi websocket: ~A" error)
+          (when (or (equal (wsd:ready-state *client*) :closing)
+                   (equal (wsd:ready-state *client*) :closed))
+            (wsd:start-connection *client*))))
+
+(wsd:on :close *client*
+        (lambda (&key code reason)
+          (log:error "close because: '~A' (Code=~A)~%" reason code)
+          (wsd:start-connection *client*)))
+
 (defun remove-wrap (str)
   (subseq str 1 (- (length str) 1)))
 
