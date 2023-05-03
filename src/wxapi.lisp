@@ -8,7 +8,7 @@
    ))
 (in-package :tel-bot.wxapi)
 
-(defvar *client* (wsd:make-client "ws://10.0.96.37:5757"))
+(defparameter *client* nil)
 
 (defvar *id-user* nil)
 (defvar *id-room* nil)
@@ -142,71 +142,76 @@
                 (merge-pathnames file-name
                                  path)))
 
-(wsd:on :message *client*
-        (lambda (message)
-          (let ((data (parse message)))
-            (if (string= "recive_message" (assoc-value data "type"))
+(defun handle-wx-message (message)
+  (let ((data (parse message)))
+    (if (string= "recive_message" (assoc-value data "type"))
                 ;;; 不发送自己在群里面发的图片
-                (when (not (and (string= "self" (assoc-value data "sender_name"))
-                            (and (string= (assoc-value data "message_type") "picture")
-                               (assoc-value data '("content" "havep")))))
-                  (let ((wx-message (generate-wx-message data))
-                        (group-name (gethash (assoc-value data "group")
-                                             *group-link*)))
-                    (let ((message-id (send-message-wx (assoc-value data "message_type")
-                                                       (if group-name
-                                                           group-name
-                                                           (get-master-chat))
-                                                       (if (and (string= (assoc-value data "message_type") "picture")
-                                                              (assoc-value data '("content" "havep")))
-                                                           (list
-                                                            (download-picture
-                                                             (assoc-value data
-                                                                          '("content" "pic" "name")))
-                                                            wx-message)
-                                                           wx-message))))
-                      (when message-id
-                        (setf (gethash message-id
-                                       *last-message-id*)
-                              (assoc-value data "wx_id"))
-                        ;; 记录上次的消息
-                        (setf (gethash (assoc-value data "group")
-                                       *last-say-message*)
-                              data)))))
-                (when (string= "user_list" (assoc-value data "type"))
-                  (setf *id-user* (assoc-value data "user"))
-                  (setf *id-room* (assoc-value data "room"))
-                  (setf *group-list* (assoc-value data "groups")))))
-          (log:info "recive message: ~A" message)))
-
-(wsd:on :open *client*
-        (lambda ()
-          (format t "Connected~%")))
-
-(wsd:on :error *client*
-        (lambda (error)
-          (log:error "Wxapi websocket: ~A" error)
-          (when (or (equal (wsd:ready-state *client*) :closing)
-                   (equal (wsd:ready-state *client*) :closed))
-            (wsd:start-connection *client*))))
-
-(wsd:on :close *client*
-        (lambda (&key code reason)
-          (log:error "close because: '~A' (Code=~A)~%" reason code)
-          (wsd:start-connection *client*)))
+        (when (not (and (string= "self" (assoc-value data "sender_name"))
+                    (and (string= (assoc-value data "message_type") "picture")
+                       (assoc-value data '("content" "havep")))))
+          (let ((wx-message (generate-wx-message data))
+                (group-name (gethash (assoc-value data "group")
+                                     *group-link*)))
+            (let ((message-id (send-message-wx (assoc-value data "message_type")
+                                               (if group-name
+                                                   group-name
+                                                   (get-master-chat))
+                                               (if (and (string= (assoc-value data "message_type") "picture")
+                                                      (assoc-value data '("content" "havep")))
+                                                   (list
+                                                    (download-picture
+                                                     (assoc-value data
+                                                                  '("content" "pic" "name")))
+                                                    wx-message)
+                                                   wx-message))))
+              (when message-id
+                (setf (gethash message-id
+                               *last-message-id*)
+                      (assoc-value data "wx_id"))
+                ;; 记录上次的消息
+                (setf (gethash (assoc-value data "group")
+                               *last-say-message*)
+                      data)))))
+        (when (string= "user_list" (assoc-value data "type"))
+          (setf *id-user* (assoc-value data "user"))
+          (setf *id-room* (assoc-value data "room"))
+          (setf *group-list* (assoc-value data "groups")))))
+  (log:info "recive message: ~A" message))
 
 (defun remove-wrap (str)
   (subseq str 1 (- (length str) 1)))
 
-(defun test ()
-  (mapcar #'remove-wrap
-          (cl-ppcre:all-matches-as-strings "(\\[).*?(\\])" "[hello] in [adasd]")))
-
 (defun start-ws ()
+  (setf *client* (wsd:make-client "ws://10.0.96.37:5757"))
+  (wsd:on :message *client*
+          (lambda (message)
+            (handler-case
+                (handle-wx-message message)
+              (error (c)
+                (log:error "handle wx message error: ~A~%" c)))))
+
+  (wsd:on :open *client*
+          (lambda ()
+            (format t "Connected~%")))
+
+  (wsd:on :error *client*
+          (lambda (error)
+            (log:error "Wxapi websocket: ~A" error)
+            (restart-ws)))
+
+  (wsd:on :close *client*
+          (lambda (&key code reason)
+            (log:error "close because: '~A' (Code=~A)~%" reason code)
+            (restart-ws)))
   (wsd:start-connection *client*))
 
 (defun stop-ws ()
-  (wsd:close-connection *client*))
+  (wsd:close-connection *client*)
+  (setf *client* nil))
+
+(defun restart-ws ()
+  (stop-ws)
+  (start-ws))
 
 (defun text-get-id (text)
   (car
