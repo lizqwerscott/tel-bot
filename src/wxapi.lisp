@@ -197,12 +197,14 @@
   (wsd:on :error *client*
           (lambda (error)
             (log:error "Wxapi websocket: ~A" error)
-            (restart-ws)))
+            ;; (restart-ws)
+            ))
 
   (wsd:on :close *client*
           (lambda (&key code reason)
             (log:error "close because: '~A' (Code=~A)~%" reason code)
-            (restart-ws)))
+            ;; (restart-ws)
+            ))
   (wsd:start-connection *client*))
 
 (defun stop-ws ()
