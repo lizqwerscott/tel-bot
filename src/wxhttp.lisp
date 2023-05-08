@@ -1,23 +1,72 @@
-(defpackage tel-bot.wxapi
+(defpackage tel-bot.wxhttp
   (:import-from :quri :make-uri)
+  (:import-from :alexandria :when-let)
   (:import-from :str :trim)
   (:use
    :cl
    :cl-telegram-bot
    :tel-bot.bot
    :tel-bot.web
-   :websocket-driver-client
    :lzputils.json
    :easy-config
    :lzputils.used
    :tel-bot.head)
   (:export
-   :start-ws
-   :stop-ws
-   ))
-(in-package :tel-bot.wxapi)
+   :start-wx
+   :stop-wx
+   :restart-wx))
+(in-package :tel-bot.wxhttp)
 
-(defparameter *client* nil)
+(defparameter *host* "10.0.96.37")
+(defparameter *http-port* 5757)
+(defparameter *picture-port* 5556)
+
+(defparameter *server-run* nil)
+
+(defun get-http-url ()
+  (format nil "~A:~A" *host* *http-port*))
+
+(defun get-picture-url ()
+  (format nil "~A:~A" *host* *picture-port*))
+
+(defun handle-data (data)
+  (when data
+    (if (= (assoc-value data "code"))
+        (assoc-value data "data")
+        (log:error "Http error: ~A~%"
+                   (assoc-value data "msg")))))
+
+(defun get-userlist ()
+  (handle-data
+   (web-get (get-http-url)
+            "user/userlist"
+            :jsonp t)))
+
+(defun get-updates ()
+  (handle-data
+   (web-get (get-http-url)
+            "message/getUpdates"
+            :jsonp t)))
+
+(defun send-wx-text (id text)
+  (handle-data
+   (web-post (make-uri :scheme "http"
+                       :host *host*
+                       :port *http-port*
+                       :path "/message/sendText")
+             :args `(("wx_id" . ,id)
+                     ("content" . ,text))
+             :jsonp t)))
+
+(defun send-wx-picture (id pic-url)
+  (handle-data
+   (web-post (make-uri :scheme "http"
+                       :host *host*
+                       :port *http-port*
+                       :path "/message/sendPicture")
+             :args `(("wx_id" . ,id)
+                     ("url" . ,pic-url))
+             :jsonp t)))
 
 (defvar *id-user* nil)
 (defvar *id-room* nil)
@@ -88,6 +137,30 @@
                                                          "&lt;"
                                                          content)))))))
 
+(defun send-message-wx (type id content)
+  (handler-case
+      (getf (if (string= type "text")
+                (send-html id
+                           content)
+                (if (string= type "picture")
+                    (send-picture id
+                                  (first content)
+                                  (second content))))
+            :|message_id|)
+    (error (c)
+      (log:error "send telegram message error:~A" content))))
+
+(defun download-picture (file-name &optional (path (ensure-directories-exist
+                                                    (merge-pathnames "pictures/"
+                                                                     (get-data-path)))))
+  (download-url (make-uri :scheme "http"
+                          :host "192.168.2.198"
+                          :port 5556
+                          :path "/picture/get"
+                          :query `(("name" . ,file-name)))
+                (merge-pathnames file-name
+                                 path)))
+
 (defun generate-wx-message (data)
   (let ((roomp (assoc-value data "roomp"))
         (content (get-content data))
@@ -127,125 +200,71 @@
                             " ")
                         content)))))
 
-(defun send-message-wx (type id content)
-  (handler-case
-      (getf (if (string= type "text")
-                (send-html id
-                           content)
-                (if (string= type "picture")
-                    (send-picture id
-                                  (first content)
-                                  (second content))))
-            :|message_id|)
-    (error (c)
-      (log:error "send telegram message error:~A" content))))
+(defun handle-wx-message (data)
+  ;;不发送自己在群里面发的图片
+  (when (not (and (string= "self" (assoc-value data "sender_name"))
+              (and (string= (assoc-value data "message_type") "picture")
+                 (assoc-value data '("content" "havep")))))
+    (let ((wx-message (generate-wx-message data))
+          (group-name (gethash (assoc-value data "group")
+                               *group-link*)))
+      (let ((message-id (send-message-wx (assoc-value data "message_type")
+                                         (if group-name
+                                             group-name
+                                             (get-master-chat))
+                                         (if (and (string= (assoc-value data "message_type") "picture")
+                                                (assoc-value data '("content" "havep")))
+                                             (list
+                                              (download-picture
+                                               (assoc-value data
+                                                            '("content" "pic" "name")))
+                                              wx-message)
+                                             wx-message))))
+        (when message-id
+          (setf (gethash message-id
+                         *last-message-id*)
+                (assoc-value data "wx_id"))
+          ;; 记录上次的消息
+          (setf (gethash (assoc-value data "group")
+                         *last-say-message*)
+                data)))))
+  (log:info "recive message: ~A" data))
 
-(defun download-picture (file-name &optional (path (ensure-directories-exist
-                                                    (merge-pathnames "pictures/"
-                                                                     (get-data-path)))))
-  (download-url (make-uri :scheme "http"
-                          :host "192.168.2.198"
-                          :port 5556
-                          :path "/picture/get"
-                          :query `(("name" . ,file-name)))
-                (merge-pathnames file-name
-                                 path)))
+(defun server-run ()
+  (let ((user-list (get-userlist)))
+    (setf *id-user* (assoc-value user-list "users"))
+    (setf *id-room* (assoc-value user-list "rooms"))
+    (setf *group-list* (assoc-value user-list "groups"))
+    (log:info "recive user list: ~A" user-list))
+  (do ()
+      ((not *server-run*) 'done)
+    (handler-case
+        (let ((res (get-updates)))
+          (when (assoc-value res "update")
+            (dolist (message (assoc-value res "messages"))
+              (handler-case
+                  (handle-wx-message message)
+                (error (c)
+                  (log:error "handle wx message error: ~A~%" c))))))
+      (error (c)
+        (log:error "Get updates errors: ~A" c)))
+    (sleep 1)))
 
-(defun handle-wx-message (message)
-  (let ((data (parse message)))
-    (if (string= "recive_message" (assoc-value data "type"))
-                ;;; 不发送自己在群里面发的图片
-        (when (not (and (string= "self" (assoc-value data "sender_name"))
-                    (and (string= (assoc-value data "message_type") "picture")
-                       (assoc-value data '("content" "havep")))))
-          (let ((wx-message (generate-wx-message data))
-                (group-name (gethash (assoc-value data "group")
-                                     *group-link*)))
-            (let ((message-id (send-message-wx (assoc-value data "message_type")
-                                               (if group-name
-                                                   group-name
-                                                   (get-master-chat))
-                                               (if (and (string= (assoc-value data "message_type") "picture")
-                                                      (assoc-value data '("content" "havep")))
-                                                   (list
-                                                    (download-picture
-                                                     (assoc-value data
-                                                                  '("content" "pic" "name")))
-                                                    wx-message)
-                                                   wx-message))))
-              (when message-id
-                (setf (gethash message-id
-                               *last-message-id*)
-                      (assoc-value data "wx_id"))
-                ;; 记录上次的消息
-                (setf (gethash (assoc-value data "group")
-                               *last-say-message*)
-                      data)))))
-        (when (string= "user_list" (assoc-value data "type"))
-          (setf *id-user* (assoc-value data "user"))
-          (setf *id-room* (assoc-value data "room"))
-          (setf *group-list* (assoc-value data "groups")))))
-  (log:info "recive message: ~A" message))
+(defun start-wx ()
+  (setf *server-run* t)
+  (create-job #'server-run))
 
-(defun remove-wrap (str)
-  (subseq str 1 (- (length str) 1)))
+(defun stop-wx ()
+  (setf *server-run* nil))
 
-(defun start-ws ()
-  (setf *client* (wsd:make-client "ws://10.0.96.37:5757"))
-  (wsd:on :message *client*
-          (lambda (message)
-            (handler-case
-                (handle-wx-message message)
-              (error (c)
-                (log:error "handle wx message error: ~A~%" c)))))
-
-  (wsd:on :open *client*
-          (lambda ()
-            (format t "Connected~%")))
-
-  (wsd:on :error *client*
-          (lambda (error)
-            (log:error "Wxapi websocket: ~A" error)
-            ;; (restart-ws)
-            ))
-
-  (wsd:on :close *client*
-          (lambda (&key code reason)
-            (log:error "close because: '~A' (Code=~A)~%" reason code)
-            ;; (restart-ws)
-            ))
-  (wsd:start-connection *client*))
-
-(defun stop-ws ()
-  (wsd:close-connection *client*)
-  (setf *client* nil))
-
-(defun restart-ws ()
-  (stop-ws)
-  (start-ws))
-
-(defun text-get-id (text)
-  (car
-   (mapcar #'remove-wrap
-           (cl-ppcre:all-matches-as-strings "{.*?}" text))))
-
-(defun send-wx-message (id message)
-  (wsd:send-text *client*
-                 (to-json-a
-                  `(("action" . "send_message")
-                    ("content" . ,message)
-                    ("wx_id" . ,id)))))
-
-(defun send-wx-picture (id pic-url)
-  (wsd:send-text *client*
-                 (to-json-a
-                  `(("action" . "send_picture")
-                    ("url" . ,pic-url)
-                    ("wx_id" . ,id)))))
+(defun restart-wx ()
+  (stop-wx)
+  (sleep 1)
+  (start-wx))
 
 (defun reply-message (id message)
   (if (string= (car message) "text")
-      (send-wx-message id (cdr message))
+      (send-wx-text id (cdr message))
       (if (find (car message) '("photo" "sticker") :test #'string=)
           (send-wx-picture id (cdr message)))))
 
@@ -300,7 +319,7 @@
           (let ((id (name-get-id (car data))))
             (if id
                 (progn
-                  (send-wx-message id (str:join " " (cdr data)))
+                  (send-wx-text id (str:join " " (cdr data)))
                   (reply
                    (format nil "已经发送给: ~A" id)))
                 (reply "没有找到这个人或者群")))

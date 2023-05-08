@@ -1,6 +1,6 @@
 (defpackage :tel-bot.web
   (:import-from :quri :make-uri)
-  (:use :cl :tel-bot.head :babel :yason)
+  (:use :cl :tel-bot.head :babel :yason :lzputils.json)
   (:export
    :generate-url
    :web-get
@@ -42,12 +42,13 @@
 (defun web-post (url &key args (jsonp t))
   (multiple-value-bind (body status respone-headers uri stream)
       (dex:post url
-                :content args)
+                :headers '(("Content-Type" . "application/json"))
+                :content (to-json-a args))
     (declare (ignorable status uri stream))
     (if (and jsonp
-             (str:starts-with-p "application/json"
-                                (gethash "content-type"
-                                         respone-headers)))
+           (str:starts-with-p "application/json"
+                              (gethash "content-type"
+                                       respone-headers)))
         (parse body)
         body)))
 

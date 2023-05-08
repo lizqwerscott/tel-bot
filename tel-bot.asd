@@ -27,7 +27,8 @@
                  (:file "music")
                  (:file "picture")
                  (:file "minecraft")
-                 (:file "wxapi")
+                 ;; (:file "wxapi")
+                 (:file "wxhttp")
                  (:file "main"))))
   :description ""
   :in-order-to ((test-op (test-op "tel-bot/tests"))))

@@ -8,7 +8,7 @@
    :tel-bot.task
    :tel-bot.text
    :tel-bot.picture
-   :tel-bot.wxapi)
+   :tel-bot.wxhttp)
   (:export
    :start
    :stop))
@@ -69,19 +69,20 @@
 (defun run ()
   (format t "Start patron...~%")
   (start-patron)
+  (start-wx)
   (do ((i 0 (+ i 1)))
       (nil i)
     ;; reset all day task
     (when (and (apply #'time-in (get-time-range 0 0))
-               (not (is-reset)))
+             (not (is-reset)))
       (format t "reset all task run~%")
       (reset-task-time))
     ;; run day task
     (dolist (task (run-tasks))
       (when (and (not (task-runp task))
-                 (apply #'time-in
-                        (apply #'get-time-range
-                               (task-time task))))
+               (apply #'time-in
+                      (apply #'get-time-range
+                             (task-time task))))
         (create-job (task-func task))
         (setf (task-runp task) t)))
     (sleep 1))
@@ -90,7 +91,7 @@
 
 (defun start (&optional (is-debug nil))
   (start-bot)
-  (start-ws)
+  ;; (start-ws)
   (if is-debug
       (make-thread #'run)
       (run)))
