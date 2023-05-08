@@ -1,4 +1,5 @@
 (defpackage tel-bot.wxhttp
+  (:import-from :bordeaux-threads :make-thread)
   (:import-from :quri :make-uri)
   (:import-from :alexandria :when-let)
   (:import-from :str :trim)
@@ -252,7 +253,7 @@
 
 (defun start-wx ()
   (setf *server-run* t)
-  (create-job #'server-run))
+  (make-thread #'server-run :name "wxhttp"))
 
 (defun stop-wx ()
   (setf *server-run* nil))
