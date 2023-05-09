@@ -9,6 +9,7 @@
    :tel-bot.bot
    :tel-bot.web
    :lzputils.json
+   :lzputils.string
    :easy-config
    :lzputils.used
    :tel-bot.head)
@@ -264,7 +265,7 @@
   (start-wx))
 
 (defun reply-message (id message)
-  (if (string= (car message) "text")
+  (if (find (car message) '("text" "entities") :test #'string=)
       (send-wx-text id (cdr message))
       (if (find (car message) '("photo" "sticker") :test #'string=)
           (send-wx-picture id (cdr message)))))

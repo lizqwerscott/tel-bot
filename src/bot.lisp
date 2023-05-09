@@ -198,6 +198,8 @@
           (alexandria:switch (type :test #'string=)
             ("text"
              data)
+            ("entities"
+             (assoc-value message-raw-data "text"))
             ("photo"
              (get-file-url (assoc-value (second data) "file_id")))
             ("sticker"
@@ -213,7 +215,8 @@
         (chat-id (cl-telegram-bot/chat:get-chat-id
                   (get-current-chat))))
     ;; (format t
-    ;;         "raw-data: ~A~%"
+    ;;         "text: ~A, raw-data: ~A~%"
+    ;;         text
     ;;         raw-data)
     (format t
             "data: ~A~%"
