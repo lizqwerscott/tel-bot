@@ -232,16 +232,21 @@
                 data)))))
   (log:info "recive message: ~A" data))
 
-(defun server-run ()
+(defun refresh-user-list ()
   (let ((user-list (get-userlist)))
     (setf *id-user* (assoc-value user-list "users"))
     (setf *id-room* (assoc-value user-list "rooms"))
     (setf *group-list* (assoc-value user-list "groups"))
-    (log:info "recive user list: ~A" user-list))
+    (log:info "refresh recive user list: ~A" user-list)))
+
+(defun server-run ()
+  (refresh-user-list)
   (do ((wait-time 1))
       ((not *server-run*) 'done)
     (handler-case
         (let ((res (get-updates)))
+          (when (assoc-value res "update_list")
+            (refresh-user-list))
           (if (assoc-value res "update")
               (progn
                 (setf wait-time 1)
