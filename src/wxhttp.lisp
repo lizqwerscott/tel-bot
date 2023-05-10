@@ -238,19 +238,24 @@
     (setf *id-room* (assoc-value user-list "rooms"))
     (setf *group-list* (assoc-value user-list "groups"))
     (log:info "recive user list: ~A" user-list))
-  (do ()
+  (do ((wait-time 1))
       ((not *server-run*) 'done)
     (handler-case
         (let ((res (get-updates)))
-          (when (assoc-value res "update")
-            (dolist (message (assoc-value res "messages"))
-              (handler-case
-                  (handle-wx-message message)
-                (error (c)
-                  (log:error "handle wx message error: ~A~%" c))))))
+          (if (assoc-value res "update")
+              (progn
+                (setf wait-time 1)
+                (dolist (message (assoc-value res "messages"))
+                  (handler-case
+                      (handle-wx-message message)
+                    (error (c)
+                      (log:error "handle wx message error: ~A~%" c)))))
+              (setf wait-time
+                    (mod (+ 1 wait-time)
+                         5))))
       (error (c)
         (log:error "Get updates errors: ~A" c)))
-    (sleep 1)))
+    (sleep wait-time)))
 
 (defun start-wx ()
   (setf *server-run* t)
