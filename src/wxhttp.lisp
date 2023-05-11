@@ -113,9 +113,13 @@
 (load-group-link)
 
 (defun name-get-id (name)
-  (car
-   (or (find name *id-user* :test #'string= :key #'(lambda (x) (cdr x)))
-      (find name *id-room* :test #'string= :key #'(lambda (x) (cdr x))))))
+  (append
+   (remove-if-not #'(lambda (x)
+                      (str:contains? name (cdr x)))
+                  *id-user*)
+   (remove-if-not #'(lambda (x)
+                      (str:contains? name (cdr x)))
+                  *id-room*)))
 
 (defun xor (a b)
   (or (and a b)
@@ -325,15 +329,16 @@
              (format nil (format nil "以下是对应表:~%~A" r-text)))))))
 
 (defcommand
-    (:sendwx "手动发送消息到指定的群或者人" chat text)
+    (:chat "手动发送消息到指定的群或者人" chat text)
     (let ((data (str:split " " text)))
       (if (> (length data) 1)
-          (let ((id (name-get-id (car data))))
-            (if id
+          (let ((ids (name-get-id (car data))))
+            (if (and ids
+                   (< (length ids) 2))
                 (progn
-                  (send-wx-text id (str:join " " (cdr data)))
+                  (send-wx-text (car (car ids)) (str:join " " (cdr data)))
                   (reply
-                   (format nil "已经发送给: ~A" id)))
+                   (format nil "已经发送给: ~A" (car (car ids)))))
                 (reply "没有找到这个人或者群")))
           (reply "参数不够"))))
 
