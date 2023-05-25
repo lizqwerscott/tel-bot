@@ -186,13 +186,13 @@
         (not (string= (get-content data)
                     (get-content last-data))))))
 
-(defun calc-message-length (sender-name content show-roomp)
+(defun calc-message-length (sender-name content show-roomp room-name)
   (+ (length sender-name)
      2
      (if show-roomp
          (+ 5
             (length
-             (assoc-value data "room_name")))
+             room-name))
          0)
      (length content)))
 
@@ -218,7 +218,8 @@
                       "")
                   (if (>= (calc-message-length (assoc-value data "sender_name")
                                               content
-                                              show-room-namep)
+                                              show-room-namep
+                                              (assoc-value data "room_name"))
                          22)
                       (format nil "~%")
                       " ")
