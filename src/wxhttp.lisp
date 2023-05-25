@@ -186,6 +186,16 @@
         (not (string= (get-content data)
                     (get-content last-data))))))
 
+(defun calc-message-length (sender-name content show-roomp)
+  (+ (length sender-name)
+     2
+     (if show-roomp
+         (+ 5
+            (length
+             (assoc-value data "room_name")))
+         0)
+     (length content)))
+
 (defun generate-wx-message (data)
   (let ((roomp (assoc-value data "roomp"))
         (content (get-content data))
@@ -196,19 +206,23 @@
         (format nil
                 "~A"
                 content)
-        (format nil
-                "<b>~A</b>~A:~A~A"
-                (assoc-value data "sender_name")
-                (if (and roomp
-                       (not
-                        (string= (assoc-value data "room_id")
-                                 (assoc-value last-message "room_id"))))
-                    (format nil " in #~A" (assoc-value data "room_name"))
-                    "")
-                (if (> (length content) 5)
-                    (format nil "~%")
-                    " ")
-                content))))
+        (let ((show-room-namep (and roomp
+                                  (not
+                                   (string= (assoc-value data "room_id")
+                                            (assoc-value last-message "room_id"))))))
+          (format nil
+                  "<b>~A</b>~A:~A~A"
+                  (assoc-value data "sender_name")
+                  (if show-room-namep
+                      (format nil " in #~A" (assoc-value data "room_name"))
+                      "")
+                  (if (>= (calc-message-length (assoc-value data "sender_name")
+                                              content
+                                              show-room-namep)
+                         22)
+                      (format nil "~%")
+                      " ")
+                  content)))))
 
 (defun handle-wx-message (data)
   ;;不发送自己在群里面发的图片
@@ -218,8 +232,9 @@
     (let ((wx-message (generate-wx-message data))
           (group-name (gethash (assoc-value data "group")
                                *group-link*)))
-      (if (same-messagep data (gethash (assoc-value data "group")
-                                       *last-say-message*))
+      (if (same-messagep data
+                         (gethash (assoc-value data "group")
+                                  *last-say-message*))
           (let ((message-id (send-message-wx (assoc-value data "message_type")
                                              (if group-name
                                                  group-name
