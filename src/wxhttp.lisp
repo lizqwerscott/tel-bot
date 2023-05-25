@@ -193,7 +193,8 @@
                         (format nil " in #~A" (assoc-value data "room_name"))
                         "")
                     (if (> (length content) 5)
-                        "~%"
+                        "<pre>
+</pre>"
                         " ")
                     content))
         (format nil
@@ -203,7 +204,8 @@
                     (format nil " in #~A" (assoc-value data "room_name"))
                     "")
                 (if (> (length content) 5)
-                    "~%"
+                    "<pre>
+</pre>"
                     " ")
                 content))))
 
