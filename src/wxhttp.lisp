@@ -206,8 +206,7 @@
                     (format nil " in #~A" (assoc-value data "room_name"))
                     "")
                 (if (> (length content) 5)
-                    "<pre>
-        </pre>"
+                    (format nil "~%")
                     " ")
                 content))))
 
