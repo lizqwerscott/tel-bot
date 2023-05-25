@@ -272,10 +272,11 @@
 
 (defmacro defcommand ((name info chat-name text-name) &rest body)
   `(progn
-    (add-command-info ,name ,info)
-    (defmethod on-command ((bot manager-bot) (command (eql ,name)) ,text-name)
-     (let ((,chat-name (get-current-chat)))
-       ,@body))))
+     (add-command-info ,name ,info)
+     (defmethod on-command ((bot manager-bot) (command (eql ,name)) ,text-name)
+       (let ((,chat-name (get-current-chat)))
+         ,@body))))
+
 
 (defun send-text (chat-id text)
   (cl-telegram-bot/message:send-message *bot*

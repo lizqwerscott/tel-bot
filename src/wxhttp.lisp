@@ -3,6 +3,7 @@
   (:import-from :quri :make-uri)
   (:import-from :alexandria :when-let)
   (:import-from :str :trim)
+  (:import-from :mk-string-metrics :levenshtein)
   (:use
    :cl
    :cl-telegram-bot
@@ -168,44 +169,45 @@
                 (merge-pathnames file-name
                                  path)))
 
+(defun same-channelp (data last-data)
+  (if (xor (assoc-value data "roomp")
+           (assoc-value last-data
+                        "roomp"))
+      (if (assoc-value data "roomp")
+          (string= (assoc-value data "room_id")
+                   (assoc-value last-data "room_id"))
+          (string= (assoc-value data "sender_id")
+                   (assoc-value last-data "sender_id")))))
+
+(defun same-messagep (data last-data)
+  (or (not last-data)
+     (string= (assoc-value data "message_type") "picture")
+     (and (same-channelp data last-data)
+        (not (string= (get-content data)
+                    (get-content last-data))))))
+
 (defun generate-wx-message (data)
   (let ((roomp (assoc-value data "roomp"))
         (content (get-content data))
         (last-message (gethash (assoc-value data "group")
                                *last-say-message*)))
-    (if (and last-message
-           (xor roomp
-                (assoc-value last-message
-                             "roomp")))
-        (if (and (string= (assoc-value data "sender_id")
-                        (assoc-value last-message "sender_id"))
-               (not *reply-p*))
-            (format nil
-                    "~A"
-                    content)
-            (format nil
-                    "<b>~A</b>~A:~A~A"
-                    (assoc-value data "sender_name")
-                    (if (and roomp
-                           (not
-                            (string= (assoc-value data "room_id")
-                                     (assoc-value last-message "room_id"))))
-                        (format nil " in #~A" (assoc-value data "room_name"))
-                        "")
-                    (if (> (length content) 5)
-                        "<pre>
-</pre>"
-                        " ")
-                    content))
+    (if (and (same-channelp data last-message)
+           (not *reply-p*))
+        (format nil
+                "~A"
+                content)
         (format nil
                 "<b>~A</b>~A:~A~A"
                 (assoc-value data "sender_name")
-                (if roomp
+                (if (and roomp
+                       (not
+                        (string= (assoc-value data "room_id")
+                                 (assoc-value last-message "room_id"))))
                     (format nil " in #~A" (assoc-value data "room_name"))
                     "")
                 (if (> (length content) 5)
                     "<pre>
-</pre>"
+        </pre>"
                     " ")
                 content))))
 
@@ -217,28 +219,32 @@
     (let ((wx-message (generate-wx-message data))
           (group-name (gethash (assoc-value data "group")
                                *group-link*)))
-      (let ((message-id (send-message-wx (assoc-value data "message_type")
-                                         (if group-name
-                                             group-name
-                                             (get-master-chat))
-                                         (if (and (string= (assoc-value data "message_type") "picture")
-                                                (assoc-value data '("content" "havep")))
-                                             (list
-                                              (download-picture
-                                               (assoc-value data
-                                                            '("content" "pic" "name")))
-                                              wx-message)
-                                             wx-message))))
-        (when message-id
-          ;; 重置回复值
-          (setf *reply-p* nil)
-          (setf (gethash message-id
-                         *last-message-id*)
-                (assoc-value data "wx_id"))
-          ;; 记录上次的消息
-          (setf (gethash (assoc-value data "group")
-                         *last-say-message*)
-                data)))))
+      (if (same-messagep data (gethash (assoc-value data "group")
+                                       *last-say-message*))
+          (let ((message-id (send-message-wx (assoc-value data "message_type")
+                                             (if group-name
+                                                 group-name
+                                                 (get-master-chat))
+                                             (if (and (string= (assoc-value data "message_type") "picture")
+                                                    (assoc-value data '("content" "havep")))
+                                                 (list
+                                                  (download-picture
+                                                   (assoc-value data
+                                                                '("content" "pic" "name")))
+                                                  wx-message)
+                                                 wx-message))))
+            (when message-id
+              ;; 重置回复值
+              (setf *reply-p* nil)
+              (setf (gethash message-id
+                             *last-message-id*)
+                    (assoc-value data "wx_id"))
+              ;; 记录上次的消息
+              (setf (gethash (assoc-value data "group")
+                             *last-say-message*)
+                    data)))
+          (log:info "message is same: ~A, ~A" data (gethash (assoc-value data "group")
+                                                            *last-say-message*)))))
   (log:info "recive message: ~A" data))
 
 (defun refresh-user-list ()

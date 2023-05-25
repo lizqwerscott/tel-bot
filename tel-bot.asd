@@ -14,7 +14,8 @@
                "random-state"
                "lzputils"
                "easy-config"
-               "websocket-driver-client")
+               "websocket-driver-client"
+               "mk-string-metrics")
   :components ((:module "src"
                 :components
                 ((:file "head")
