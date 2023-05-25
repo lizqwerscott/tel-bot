@@ -76,6 +76,7 @@
 
 (defvar *group-link* (make-hash-table :test #'equal))
 (defvar *last-say-message* (make-hash-table :test #'equal))
+(defvar *reply-p* nil)
 
 (defvar *last-message-id* (make-hash-table))
 
@@ -172,39 +173,39 @@
         (content (get-content data))
         (last-message (gethash (assoc-value data "group")
                                *last-say-message*)))
-    (format nil
-            (if (and last-message
-                   (xor roomp
-                        (assoc-value last-message
-                                     "roomp")))
-                (if (string= (assoc-value data "sender_id")
-                             (assoc-value last-message "sender_id"))
-                    (format nil
-                            "~A"
-                            content)
-                    (format nil
-                            "<b>~A</b>~A:~A~A"
-                            (assoc-value data "sender_name")
-                            (if (and roomp
-                                   (not
-                                    (string= (assoc-value data "room_id")
-                                             (assoc-value last-message "room_id"))))
-                                (format nil " in #~A" (assoc-value data "room_name"))
-                                "")
-                            (if (> (length content) 5)
-                                "~%"
-                                " ")
-                            content))
-                (format nil
-                        "<b>~A</b>~A:~A~A"
-                        (assoc-value data "sender_name")
-                        (if roomp
-                            (format nil " in #~A" (assoc-value data "room_name"))
-                            "")
-                        (if (> (length content) 5)
-                            "~%"
-                            " ")
-                        content)))))
+    (if (and last-message
+           (xor roomp
+                (assoc-value last-message
+                             "roomp")))
+        (if (and (string= (assoc-value data "sender_id")
+                        (assoc-value last-message "sender_id"))
+               (not *reply-p*))
+            (format nil
+                    "~A"
+                    content)
+            (format nil
+                    "<b>~A</b>~A:~A~A"
+                    (assoc-value data "sender_name")
+                    (if (and roomp
+                           (not
+                            (string= (assoc-value data "room_id")
+                                     (assoc-value last-message "room_id"))))
+                        (format nil " in #~A" (assoc-value data "room_name"))
+                        "")
+                    (if (> (length content) 5)
+                        "~%"
+                        " ")
+                    content))
+        (format nil
+                "<b>~A</b>~A:~A~A"
+                (assoc-value data "sender_name")
+                (if roomp
+                    (format nil " in #~A" (assoc-value data "room_name"))
+                    "")
+                (if (> (length content) 5)
+                    "~%"
+                    " ")
+                content))))
 
 (defun handle-wx-message (data)
   ;;不发送自己在群里面发的图片
@@ -227,6 +228,8 @@
                                               wx-message)
                                              wx-message))))
         (when message-id
+          ;; 重置回复值
+          (setf *reply-p* nil)
           (setf (gethash message-id
                          *last-message-id*)
                 (assoc-value data "wx_id"))
@@ -279,6 +282,7 @@
   (start-wx))
 
 (defun reply-message (id message)
+  (setf *reply-p* t)
   (if (find (car message) '("text" "entities") :test #'string=)
       (send-wx-text id (cdr message))
       (if (find (car message) '("photo" "sticker") :test #'string=)
