@@ -180,11 +180,11 @@
                    (assoc-value last-data "sender_id")))))
 
 (defun same-messagep (data last-data)
-  (or (not last-data)
-     (string= (assoc-value data "message_type") "picture")
+  (and (not last-data)
+     (not (string= (assoc-value data "message_type") "picture"))
      (and (same-channelp data last-data)
-        (not (string= (get-content data)
-                    (get-content last-data))))))
+        (string= (get-content data)
+                 (get-content last-data)))))
 
 (defun calc-message-length (sender-name content show-roomp room-name)
   (+ (length sender-name)
