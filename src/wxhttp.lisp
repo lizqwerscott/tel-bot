@@ -180,7 +180,7 @@
                    (assoc-value last-data "sender_id")))))
 
 (defun same-messagep (data last-data)
-  (and (not last-data)
+  (and last-data
      (not (string= (assoc-value data "message_type") "picture"))
      (and (same-channelp data last-data)
         (string= (get-content data)
@@ -233,9 +233,9 @@
     (let ((wx-message (generate-wx-message data))
           (group-name (gethash (assoc-value data "group")
                                *group-link*)))
-      (if (same-messagep data
-                         (gethash (assoc-value data "group")
-                                  *last-say-message*))
+      (if (not (same-messagep data
+                            (gethash (assoc-value data "group")
+                                     *last-say-message*)))
           (let ((message-id (send-message-wx (assoc-value data "message_type")
                                              (if group-name
                                                  group-name
@@ -258,8 +258,10 @@
               (setf (gethash (assoc-value data "group")
                              *last-say-message*)
                     data)))
-          (log:info "message is same: ~A, ~A" data (gethash (assoc-value data "group")
-                                                            *last-say-message*)))))
+          (log:info "message is same: ~A, ~A"
+                    data
+                    (gethash (assoc-value data "group")
+                             *last-say-message*)))))
   (log:info "recive message: ~A" data))
 
 (defun refresh-user-list ()
