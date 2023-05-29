@@ -169,15 +169,21 @@
                 (merge-pathnames file-name
                                  path)))
 
+(defun same-personp (data last-data)
+  (string= (assoc-value data "sender_id")
+           (assoc-value last-data "sender_id")))
+
+(defun same-roomp (data last-data)
+  (string= (assoc-value data "room_id")
+           (assoc-value last-data "room_id")))
+
 (defun same-channelp (data last-data)
   (if (xor (assoc-value data "roomp")
            (assoc-value last-data
                         "roomp"))
       (if (assoc-value data "roomp")
-          (string= (assoc-value data "room_id")
-                   (assoc-value last-data "room_id"))
-          (string= (assoc-value data "sender_id")
-                   (assoc-value last-data "sender_id")))))
+          (same-roomp data last-data)
+          (same-personp data last-data))))
 
 (defun same-messagep (data last-data)
   (and last-data
@@ -202,14 +208,13 @@
         (last-message (gethash (assoc-value data "group")
                                *last-say-message*)))
     (if (and (same-channelp data last-message)
+           (same-personp data last-message)
            (not *reply-p*))
         (format nil
-                "~A"
                 content)
         (let ((show-room-namep (and roomp
                                   (not
-                                   (string= (assoc-value data "room_id")
-                                            (assoc-value last-message "room_id"))))))
+                                   (same-roomp data last-message)))))
           (format nil
                   "<b>~A</b>~A:~A~A"
                   (assoc-value data "sender_name")
