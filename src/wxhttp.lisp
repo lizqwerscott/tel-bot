@@ -20,7 +20,7 @@
    :restart-wx))
 (in-package :tel-bot.wxhttp)
 
-(defparameter *host* "10.0.96.37")
+(defparameter *host* "10.0.96.58")
 (defparameter *http-port* 5757)
 (defparameter *picture-port* 5556)
 

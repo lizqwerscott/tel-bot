@@ -191,7 +191,7 @@
   (subseq str 1 (- (length str) 1)))
 
 (defun start-ws ()
-  (setf *client* (wsd:make-client "ws://10.0.96.37:5757"))
+  (setf *client* (wsd:make-client "ws://10.0.96.58:5757"))
   (wsd:on :message *client*
           (lambda (message)
             (handler-case
