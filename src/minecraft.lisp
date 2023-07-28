@@ -275,21 +275,41 @@
 (defcommand
     (:mcaction "向指定序号的mc服务器发送指令, 例: /mcaction 1 /say hello" chat text)
     (refersh-instaces)
-    (handler-case
-        (let ((temp (split-s text)))
-          (let ((index (parse-integer (car temp)))
-                (command (join " " (cdr temp))))
-            (let ((instance (search-instance index)))
-              (if instance
-                  (progn
-                    (reply-text (format nil
-                                        "正在执行命令: ~A"
-                                        command))
-                    (instance-send-command command instance)
-                    (reply "命令执行完毕"))
-                  (reply "没有发现这个实例")))
-            (format t "command: ~A~%" temp)))
-      (error (c)
-        (reply (format nil "[Error]: ~A" c)))))
+  (handler-case
+      (let ((temp (split-s text)))
+        (let ((index (parse-integer (car temp)))
+              (command (join " " (cdr temp))))
+          (let ((instance (search-instance index)))
+            (if instance
+                (progn
+                  (reply-text (format nil
+                                      "正在执行命令: ~A"
+                                      command))
+                  (instance-send-command command instance)
+                  (reply "命令执行完毕"))
+                (reply "没有发现这个实例")))
+          (format t "command: ~A~%" temp)))
+    (error (c)
+      (reply (format nil "[Error]: ~A" c)))))
+
+(defcommand
+    (:mcsay "向指定序号的mc服务器发送消息, 例: /mcsay 1 hello" chat text)
+    (refersh-instaces)
+  (handler-case
+      (let ((temp (split-s text)))
+        (let ((index (parse-integer (car temp)))
+              (command (join " " (cdr temp))))
+          (let ((instance (search-instance index)))
+            (if instance
+                (progn
+                  (reply-text (format nil
+                                      "正在发送消息: ~A"
+                                      command))
+                  (instance-send-command (format nil "/say ~A" command) instance)
+                  (reply "消息发送完毕"))
+                (reply "没有发现这个实例")))
+          (format t "command: ~A~%" temp)))
+    (error (c)
+      (reply (format nil "[Error]: ~A" c)))))
 
 (in-package :cl-user)
