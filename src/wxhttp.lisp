@@ -372,7 +372,7 @@
                 (progn
                   (send-wx-text (car (car ids)) (str:join " " (cdr data)))
                   (reply
-                   (format nil "已经发送给: ~A" (car (car ids)))))
+                   (format nil "已经发送给: ~A" (car ids))))
                 (reply "没有找到这个人或者群")))
           (reply "参数不够"))))
 
