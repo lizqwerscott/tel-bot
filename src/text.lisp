@@ -58,10 +58,20 @@
              :args `(("key" . ,*tianx-key*))
              :jsonp t))))
 
+(defun get-story (&key (story-type 2))
+  "type 故事类型，成语1、睡前2、童话3、寓言4, word 故事标题"
+  (car
+   (handle-tianx
+    (web-get *tian-address*
+             "story/index"
+             :args `(("key" . ,*tianx-key*)
+                     ("storytype" . ,story-type))
+             :jsonp t))))
+
 (defcommand
     (:love "发送一段情话" chat text)
     (declare (ignorable text))
-    (handler-case
+  (handler-case
       (let ((text (get-random-text "love")))
         (reply text))
     (error (c)
@@ -79,10 +89,41 @@
 (defcommand
     (:joke "发送一段笑话" chat text)
     (declare (ignorable text))
-    (handler-case
+  (handler-case
       (let ((text (get-random-text "joke")))
         (reply text))
     (error (c)
       (reply (format nil "[Error]: ~A" c)))))
+
+(defun handle-story (story)
+  (format nil
+          "~A~%~A"
+          (assoc-value story "title")
+          (assoc-value story "content")))
+
+(defcommand
+    (:story "发送一段故事(参数: 成语, 睡前, 童话, 寓言)" chat text)
+    (handler-case
+        (reply
+         (let ((match-res (cond
+                            ((string= text "成语")
+                             1)
+                            ((string= text "睡前")
+                             2)
+                            ((string= text "童话")
+                             3)
+                            ((string= text "寓言")
+                             4)
+                            (t
+                             5))))
+           (if (string= text "")
+               (handle-story
+                (get-story))
+               (if (= match-res 5)
+                   "只支持成语、睡前、童话、寓言"
+                   (handle-story
+                    (get-story :story-type match-res))))))
+      (error (c)
+        (reply (format nil "[Error]: ~A" c)))))
 
 (in-package :cl-user)

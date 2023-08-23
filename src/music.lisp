@@ -100,7 +100,7 @@
                      (car (assoc-value song "person")))))))))
 
 (defcommand
-    (:music "搜索网易云的歌曲" chat text)
+    (:music "搜索网易云的歌曲(寄)" chat text)
     (handler-case
         (let ((res (search-song (str:trim text))))
           (reply-text "正在寻找歌曲中......")
