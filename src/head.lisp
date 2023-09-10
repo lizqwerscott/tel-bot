@@ -108,6 +108,9 @@
      (mc-token :type :str)
      (chatgpt :type :str)
      (intent-address :default "http://127.0.0.1:9797")
+     (wx-host :type :str :default "127.0.0.1")
+     (wx-port :type :number :default 5757)
+     (picture-port :type :number :default 5556)
      (save-path :type :str)))
 
 (defun replace-all-l (olds new s)
