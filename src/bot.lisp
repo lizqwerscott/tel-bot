@@ -192,6 +192,16 @@
                                                               :file_id file-id))
                        "file_path")))
 
+(defun get-max-size-file (data)
+  (cdr
+   (alexandria:extremum (mapcar #'(lambda (data)
+                                    (if (assoc-value data "file_size")
+                                        (cons (assoc-value data "file_size") (assoc-value data "file_id"))
+                                        (cons (getf (car data) :|file_size|) (getf (car data) :|file_id|))))
+                                data)
+                        #'>
+                        :key #'car)))
+
 (defun parse-message-data (message-raw-data type)
   (let ((data (assoc-value message-raw-data type)))
     (cons type
@@ -201,9 +211,15 @@
             ("entities"
              (assoc-value message-raw-data "text"))
             ("photo"
-             (get-file-url (assoc-value (second data) "file_id")))
+             (get-file-url (get-max-size-file data)))
             ("sticker"
-             (get-file-url (assoc-value data "file_id")))))))
+             (get-file-url (assoc-value data "file_id")))
+            ("caption_entities"
+             (when (string= (car (third message-raw-data)) "photo")
+               (get-file-url
+                (get-max-size-file
+                 (cdr (third message-raw-data))))))
+            ))))
 
 (defmethod on-message ((bot manager-bot) text)
   (let ((raw-data (plist-to-alist
@@ -214,10 +230,11 @@
                         cl-telegram-bot/message::*current-message*)))
         (chat-id (cl-telegram-bot/chat:get-chat-id
                   (get-current-chat))))
-    ;; (format t
-    ;;         "text: ~A, raw-data: ~A~%"
-    ;;         text
-    ;;         raw-data)
+    (setq *temp-data* raw-data)
+    (format t
+            "text: ~A, raw-data: ~A~%"
+            text
+            raw-data)
     (format t
             "data: ~A~%"
             (parse-message-data raw-data message-type))
@@ -238,6 +255,15 @@
                 (error (c)
                   (reply (format nil "Error: ~A~%" c))))
               (let ((words (trim text)))
+                ;; save picture
+                (let ((path (get-config "save-path"))
+                      (url (cdr (parse-message-data raw-data message-type))))
+                  (when (and (uiop:directory-exists-p path)
+                           (or (string= message-type "photo")
+                              (string= message-type "caption_entities"))
+                           url)
+                    (format t "download url: ~A in ~A~%" url (merge-pathnames (file-url-filename url) path))
+                    (download-url url (merge-pathnames (file-url-filename url) path) t)))
                 (format t "message: ~A~%" words)
                 (handle-message
                  (trim

@@ -21,6 +21,7 @@
    :today-format
 
    :make-file
+   :file-url-filename
    :download-url
 
    :replace-all-l))
@@ -82,12 +83,18 @@
   (merge-pathnames (format nil "~A.~A" name extension)
                    path))
 
-(defun download-url (url save-path)
+(defun file-url-filename (url)
+  (last1 (split-s url "/")))
+
+(defun download-url (url save-path &optional (proxy nil))
   (handler-case
       (progn
         (run-shell
          (format nil
-                 "curl -L ~A -o ~A"
+                 "~Acurl -L ~A -o ~A"
+                 (if proxy
+                     "proxychains "
+                     "")
                  url
                  save-path))
         save-path)
@@ -100,7 +107,8 @@
      (mc-address :type :str)
      (mc-token :type :str)
      (chatgpt :type :str)
-     (intent-address :default "http://127.0.0.1:9797")))
+     (intent-address :default "http://127.0.0.1:9797")
+     (save-path :type :str)))
 
 (defun replace-all-l (olds new s)
   (if olds
