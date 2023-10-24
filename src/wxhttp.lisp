@@ -292,9 +292,10 @@
                       (handle-wx-message message)
                     (error (c)
                       (log:error "handle wx message error: ~A~%" c)))))
-              (setf wait-time
-                    (mod (+ 1 wait-time)
-                         5))))
+              ;; (setf wait-time
+              ;;       (mod (+ 1 wait-time)
+              ;;            5))
+              ))
       (error (c)
         (log:error "Get updates errors: ~A" c)))
     (sleep wait-time)))
