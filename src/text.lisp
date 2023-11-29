@@ -70,28 +70,36 @@
 
 (defvar *ybanapi* "ybapi.cn")
 
+(defun parse-text-show (text)
+  "\\n \r 正确解析"
+  (format nil (replace-all-l "\\r" "~%~%%" (replace-all-l "\\\n" "~%" text))))
+
 (defun get-fd-text (name)
   "name: 发颠的对象"
-  (web-get *ybanapi*
-           "API/fd.php"
-           :args `(("name" . ,name))))
+  (parse-text-show
+   (web-get *ybanapi*
+            "API/fd.php"
+            :args `(("name" . ,name)))))
 
 (defun get-cp-text (cp1 cp0)
   "cp1: 攻, cp0: 受"
-  (web-get *ybanapi*
-           "API/cp.php"
-           :args `(("cp1" . ,cp1)
-                   ("cp0" . ,cp0))))
+  (parse-text-show
+   (web-get *ybanapi*
+            "API/cp.php"
+            :args `(("cp1" . ,cp1)
+                    ("cp0" . ,cp0)))))
 
 (defun get-acgyiyan ()
   "输出 acg 名言"
-  (web-get *ybanapi*
-           "API/acgyiyan.php"))
+  (parse-text-show
+   (web-get *ybanapi*
+            "API/acgyiyan.php")))
 
 (defun get-kfc ()
   "输出 kfc 文案"
-  (web-get *ybanapi*
-           "API/kfc.php"))
+  (parse-text-show
+   (web-get *ybanapi*
+            "API/kfc.php")))
 
 (defcommand
     (:love "发送一段情话" chat text)
