@@ -68,6 +68,31 @@
                      ("storytype" . ,story-type))
              :jsonp t))))
 
+(defvar *ybanapi* "ybapi.cn")
+
+(defun get-fd-text (name)
+  "name: 发颠的对象"
+  (web-get *ybanapi*
+           "API/fd.php"
+           :args `(("name" . ,name))))
+
+(defun get-cp-text (cp1 cp0)
+  "cp1: 攻, cp0: 受"
+  (web-get *ybanapi*
+           "API/cp.php"
+           :args `(("cp1" . ,cp1)
+                   ("cp0" . ,cp0))))
+
+(defun get-acgyiyan ()
+  "输出 acg 名言"
+  (web-get *ybanapi*
+           "API/acgyiyan.php"))
+
+(defun get-kfc ()
+  "输出 kfc 文案"
+  (web-get *ybanapi*
+           "API/kfc.php"))
+
 (defcommand
     (:love "发送一段情话" chat text)
     (declare (ignorable text))
@@ -123,6 +148,47 @@
                    "只支持成语、睡前、童话、寓言"
                    (handle-story
                     (get-story :story-type match-res))))))
+      (error (c)
+        (reply (format nil "[Error]: ~A" c)))))
+
+(defcommand
+    (:fd "发颠(参数: 指定发颠名字)" chat text)
+    (handler-case
+        (reply
+         (if (string= text "")
+             "请输入发颠的对象"
+             (get-fd-text text)))
+      (error (c)
+        (reply (format nil "[Error]: ~A" c)))))
+
+(defcommand
+    (:acgyiyan "返回 ACG 名言" chat text)
+    (declare (ignorable text))
+    (handler-case
+        (reply
+         (get-acgyiyan))
+      (error (c)
+        (reply (format nil "[Error]: ~A" c)))))
+
+(defcommand
+    (:kfc "返回 Kfc 疯狂星期四文案" chat text)
+    (declare (ignorable text))
+    (handler-case
+        (reply
+         (get-kfc))
+      (error (c)
+        (reply (format nil "[Error]: ~A" c)))))
+
+(defcommand
+    (:cp "返回 Cp 文案: 参数(第一个参数: 攻, 第二个参数: 受)" chat text)
+    (handler-case
+        (reply
+         (let ((temp (split-s text)))
+           (let ((cp1 (first temp))
+                 (cp0 (second temp)))
+             (if (and cp1 cp0)
+                 (get-cp-text cp1 cp0)
+                 "参数不正确: 第一个参数: 攻, 第二个参数: 受"))))
       (error (c)
         (reply (format nil "[Error]: ~A" c)))))
 
