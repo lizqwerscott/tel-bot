@@ -351,8 +351,8 @@
 
 (defcommand
     (:grouplinks "列出分组对应的群" chat text)
-    (check-permissions chat)
     (declare (ignorable text))
+    (check-permissions chat)
     (reply
      (let ((res nil))
        (maphash #'(lambda (k v)
