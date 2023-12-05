@@ -35,6 +35,8 @@
 
    :get-file-url
 
+   :check-permissions
+
    :send-text
    :send-markdown
    :send-html
@@ -388,6 +390,11 @@
               title
               performer))
 
+(defun check-permissions (chat)
+  (let ((chat-id (cl-telegram-bot/chat:get-chat-id chat)))
+    (unless (= chat-id (get-master-chat))
+      (reply "你没有权限执行这个命令"))))
+
 (defparameter *master-chat* nil)
 (defparameter *manager-group* nil)
 
@@ -430,19 +437,21 @@
 (defcommand
     (:managergroup "添加此会话为机器人管理的会话" chat text)
     (declare (ignorable text))
+    (check-permissions chat)
     (let ((chat-id (cl-telegram-bot/chat:get-chat-id chat)))
       (if (find chat-id *manager-group* :test #'=)
           (reply "这个会话已经添加过了哟")
           (progn
             (setf *manager-group*
-                (append *manager-group*
-                        (list chat-id)))
+                  (append *manager-group*
+                          (list chat-id)))
             (save-manager-group)
             (reply (format nil "添加成功:~A" (get-manager-group)))))))
 
 (defcommand
     (:groups "列出机器人管理的会话" chat text)
     (declare (ignorable text))
+    (check-permissions chat)
     (reply
      (format nil
              "会话列表：~%~{~A~}"

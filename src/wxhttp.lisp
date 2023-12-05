@@ -335,6 +335,7 @@
 
 (defcommand
     (:linkgroup "添加此会话到微信分组" chat text)
+    (check-permissions chat)
     (let ((chat-id (cl-telegram-bot/chat:get-chat-id chat))
           (group-name (trim text)))
       (if (find group-name *group-list* :test #'string=)
@@ -350,6 +351,7 @@
 
 (defcommand
     (:grouplinks "列出分组对应的群" chat text)
+    (check-permissions chat)
     (declare (ignorable text))
     (reply
      (let ((res nil))
@@ -365,6 +367,7 @@
 
 (defcommand
     (:chat "手动发送消息到指定的群或者人" chat text)
+    (check-permissions chat)
     (let ((data (str:split " " text)))
       (if (> (length data) 1)
           (let ((ids (name-get-id (car data))))
