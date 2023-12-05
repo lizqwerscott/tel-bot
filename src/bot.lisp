@@ -45,6 +45,7 @@
    :send-audio
 
    :reply-text
+   :reply-markdown
    :reply-picture
    :reply-audio))
 (in-package :tel-bot.bot)
@@ -380,6 +381,9 @@
 
 (defun reply-text (text)
   (send-text (get-current-chat) text))
+
+(defun reply-markdown (text)
+  (send-markdown (get-current-chat) text))
 
 (defun reply-picture (url)
   (send-picture (get-current-chat) url))
