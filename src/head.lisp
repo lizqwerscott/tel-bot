@@ -111,7 +111,8 @@
      (wx-host :type :str :default "127.0.0.1")
      (wx-port :type :number :default 5757)
      (picture-port :type :number :default 5556)
-     (save-path :type :str)))
+     (save-path :type :str)
+     (birthday-address :default "127.0.0.1:22400")))
 
 (defun replace-all-l (olds new s)
   (if olds

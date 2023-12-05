@@ -8,7 +8,8 @@
    :tel-bot.task
    :tel-bot.text
    :tel-bot.picture
-   :tel-bot.wxhttp)
+   :tel-bot.wxhttp
+   :tel-bot.birthday)
   (:export
    :start
    :stop))
@@ -36,23 +37,23 @@
   (let ((h (holidays))
         (line (english-line)))
     (format nil
-            "早安，~A!~%今天是~A ~A ~A~%~A~%每日一句:~%~A~%~A~%~%~A"
+            "早安，~A~%今天是~A ~A ~A~%~A~%今天生日:~%~A~%~%~A"
             (today-format t)
             (assoc-value h "lunaryear")
             (assoc-value h "lunarmonth")
             (assoc-value h "lunarday")
             (assoc-value h "name")
-            (assoc-value line "content")
-            (assoc-value line "note")
+            (get-today-anime-birthday)
             (zaoan))))
 
 (defun zaoan-fun ()
-  (let ((text (zaoan-f)))
+  (let ((text (zaoan-f))
+        (picture (random-picture)))
     (mapcar #'(lambda (chat-id)
-                (send-text chat-id
-                           text)
+                (send-markdown chat-id
+                               text)
                 (send-picture chat-id
-                              (random-picture)))
+                              picture))
             (get-manager-group))))
 
 (add-task #'(lambda ()

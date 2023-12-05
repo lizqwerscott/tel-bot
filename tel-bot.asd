@@ -29,6 +29,7 @@
                  (:file "picture")
                  (:file "minecraft")
                  ;; (:file "wxapi")
+                 (:file "birthday")
                  (:file "wxhttp")
                  (:file "main"))))
   :description ""
