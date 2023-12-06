@@ -58,7 +58,8 @@
                      (format nil
                              "[~A](~A)"
                              (replace-all-alist '(("(" . " ")
-                                                  (")" . " "))
+                                                  (")" . " ")
+                                                  ("-" . " "))
                                                 (assoc-value birthday "name"))
                              (assoc-value birthday "url")))
                  (if (= n -1)
