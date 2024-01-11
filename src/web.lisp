@@ -27,8 +27,8 @@
   (make-uri :defaults (generate-url host command)
             :query args))
 
-(defun web-get (host command &key args (jsonp nil))
-  (let ((text (dex:get (make-url host command args))))
+(defun web-get (host command &key args (jsonp nil) (read-timeout 10))
+  (let ((text (dex:get (make-url host command args) :read-timeout read-timeout)))
     (if jsonp
         (parse text)
         text)))

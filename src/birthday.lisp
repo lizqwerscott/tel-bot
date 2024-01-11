@@ -30,7 +30,8 @@
             "animebirthday"
             :args `(("month" . ,month)
                     ("day" . ,day))
-            :jsonp t)))
+            :jsonp t
+            :read-timeout 20)))
 
 (defun first-n (n lst)
   (subseq lst 0 (min (length lst) n)))
