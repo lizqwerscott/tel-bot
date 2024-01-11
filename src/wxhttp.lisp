@@ -314,7 +314,7 @@
 
 (defun reply-message (id message)
   (setf *reply-p* t)
-  (if (find (car message) '("text" "entities") :test #'string=)
+  (if (find (car message) '("text" "entities" "link_preview_options") :test #'string=)
       (send-wx-text id (cdr message))
       (if (find (car message) '("photo" "sticker") :test #'string=)
           (send-wx-picture id (cdr message)))))

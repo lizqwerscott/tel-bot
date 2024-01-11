@@ -211,6 +211,8 @@
           (alexandria:switch (type :test #'string=)
             ("text"
              data)
+            ("link_preview_options"
+             (assoc-value message-raw-data "text"))
             ("entities"
              (assoc-value message-raw-data "text"))
             ("photo"
