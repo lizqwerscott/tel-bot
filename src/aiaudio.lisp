@@ -56,7 +56,7 @@
 (defcommand
     (:say "永雏塔菲(测试)" chat text)
     (handler-case
-        (let ((say-text (split-s (str:trim text))))
+        (let ((say-text (str:trim text)))
           (let ((res (get-audio say-text)))
             (format t "songs: ~A~%" res)
             (log:info "taff say: ~A, path: ~A~%" say-text res)
