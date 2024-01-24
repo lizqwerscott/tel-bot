@@ -12,7 +12,8 @@
       (web-get *ai-address*
                "models/add"
                :args `(("model_path" . "./Data/Taffy/models/G_11100.pth")
-                       ("config_path" . "./Data/Taffy/config.json"))
+                       ("config_path" . "./Data/Taffy/config.json")
+                       ("device" . "cpu"))
                :jsonp nil
                :read-timeout 20)
     (error (c)
