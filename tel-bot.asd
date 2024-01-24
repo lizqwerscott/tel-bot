@@ -31,6 +31,7 @@
                  ;; (:file "wxapi")
                  (:file "birthday")
                  (:file "wxhttp")
+                 (:file "aiaudio")
                  (:file "main"))))
   :description ""
   :in-order-to ((test-op (test-op "tel-bot/tests"))))

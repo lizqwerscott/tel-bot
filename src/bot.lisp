@@ -43,11 +43,13 @@
    :send-picture
    :send-local-picture
    :send-audio
+   :send-voice
 
    :reply-text
    :reply-markdown
    :reply-picture
-   :reply-audio))
+   :reply-audio
+   :reply-voice))
 (in-package :tel-bot.bot)
 
 (defbot manager-bot)
@@ -381,6 +383,20 @@
                                               (get-chat-by-id chat-id))
                                           url)))
 
+(defun send-voice (chat-id voice)
+  (jonathan:parse
+   (uiop:run-program
+    (format nil
+            "proxychains4 python ~A ~A ~A ~A"
+            (merge-pathnames "scripts/send_voice.py"
+                             (asdf:system-source-directory :tel-bot))
+            (get-config "bot-token")
+            (if (numberp chat-id)
+                chat-id
+                (get-chat-id chat-id))
+            voice)
+    :output :string)))
+
 (defun reply-text (text)
   (send-text (get-current-chat) text))
 
@@ -395,6 +411,10 @@
               audio
               title
               performer))
+
+(defun reply-voice (voice)
+  (send-voice (get-current-chat)
+              voice))
 
 (defun check-permissions (chat)
   (let ((chat-id (cl-telegram-bot/chat:get-chat-id chat)))
