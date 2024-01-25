@@ -84,6 +84,7 @@
                (apply #'time-in
                       (apply #'get-time-range
                              (task-time task))))
+        (log:info "run task: ~A~%" (task-name task))
         (create-job (task-func task))
         (setf (task-runp task) t)))
     (sleep 1))
