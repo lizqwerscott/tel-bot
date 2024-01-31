@@ -155,10 +155,9 @@
      (if (include-words? text
                          '("help"))
          (help)
-         (if (starts-with? "/" text)
-             "命令错误"
-             (when (not (handle-command text))
-               (ask text)))))))
+         (unless (starts-with? "/" text)
+           (when (not (handle-command text))
+             (ask text)))))))
 
 (defvar *reply-message* nil)
 
