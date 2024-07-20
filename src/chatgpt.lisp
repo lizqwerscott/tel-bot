@@ -48,8 +48,10 @@
                                 ("temperature" . 0.2)
                                 ("messages" . ,*last-messages*)))
                     :read-timeout 200
-                    ;; :proxy (get-config "proxy")
-                    )
+                    :proxy (let ((proxy (get-config "proxy")))
+                             (if (string= "" proxy)
+                                 dex:*default-proxy*
+                                 proxy)))
         (declare (ignorable status uri stream))
         (if (str:starts-with-p "application/json"
                                (gethash "content-type"

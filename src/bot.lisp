@@ -56,8 +56,9 @@
 
 (defvar *bot* nil)
 
-(cl-telegram-bot/network:set-proxy
-   (get-config "proxy"))
+(let ((proxy (get-config "proxy")))
+  (unless (string= "" proxy)
+    (cl-telegram-bot/network:set-proxy proxy)))
 
 (defun create-bot ()
   (setf *bot*
