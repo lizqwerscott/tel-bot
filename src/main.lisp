@@ -1,6 +1,7 @@
 (defpackage tel-bot
   (:import-from :bordeaux-threads :make-thread)
   (:import-from :lzputils.json :assoc-value)
+  (:import-from :easy-config :get-config)
   (:use
    :cl
    :tel-bot.head
@@ -9,7 +10,8 @@
    :tel-bot.text
    :tel-bot.picture
    :tel-bot.wxhttp
-   :tel-bot.birthday)
+   :tel-bot.birthday
+   :tel-bot.aiaudio)
   (:export
    :start
    :stop))
@@ -70,7 +72,10 @@
 (defun run ()
   (format t "Start patron...~%")
   (start-patron)
-  (start-wx)
+  (when (get-config "wxp")
+    (start-wx))
+  (when (get-config "audiop")
+    (web-audio-load-model))
   (do ((i 0 (+ i 1)))
       (nil i)
     ;; reset all day task

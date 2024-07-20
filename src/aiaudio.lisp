@@ -2,7 +2,7 @@
   (:import-from :lzputils.json :assoc-value)
   (:use :common-lisp :tel-bot.bot :tel-bot.web :tel-bot.head :local-time :cl-telegram-bot :easy-config)
   (:export
-   ))
+   :web-audio-load-model))
 (in-package :tel-bot.aiaudio)
 
 (defvar *ai-address* "127.0.0.1:5000")
@@ -50,8 +50,6 @@
 
 (defun test ()
   (get-audio "大家好呀喵"))
-
-(web-audio-load-model)
 
 (defcommand
     (:say "永雏塔菲(测试)" chat text)
