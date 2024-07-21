@@ -1,13 +1,10 @@
 * Tel-Bot
-** Usage
-#+begin_src bash
-  rlwrap sbcl --load start.lisp
-#+end_src
 ** Installation
 *** Requirement
 #+begin_src bash
   git clone https://github.com/lizqwerscott/cl-telegram-bot.git
   git clone https://github.com/lizqwerscott/lzputils.git
+  git clone https://github.com/lizqwerscott/easy-config.git
 #+end_src
 *** Clone
 #+begin_src bash
@@ -21,4 +18,17 @@
 #+begin_src bash
   sudo systemctl daemon-reload
   sudo systemctl start tel-bot.service
+#+end_src
+*** as docker
+**** build
+#+begin_src bash
+  sudo docker build -t tel-bot:latest .
+#+end_src
+**** start
+#+begin_src bash
+  sudo docker compose up -d
+#+end_src
+** Usage
+#+begin_src bash
+  rlwrap sbcl --load start.lisp
 #+end_src

@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  tel-bot:
+    image: tel-bot:latest
+    # environment:
+    #   POSTGRES_USER: postgres
+    volumes:
+      - ./configs:/root/.tel-bot/
+    command: sbcl --load start.lisp
