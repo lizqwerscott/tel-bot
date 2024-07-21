@@ -31,6 +31,7 @@ COPY . /root/quicklisp/local-projects/tel-bot
 
 # 设置工作目录
 WORKDIR /root/quicklisp/local-projects/tel-bot
+RUN mkdir /root/downloads
 
 # 安装 lisp 依赖
 RUN sbcl --non-interactive --eval "(ql:quickload :tel-bot)"
