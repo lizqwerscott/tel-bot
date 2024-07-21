@@ -157,8 +157,10 @@
                          '("help"))
          (help)
          (unless (starts-with? "/" text)
-           (when (not (handle-command text))
-             (ask text)))))))
+           (ask text)
+           ;; (when (not (handle-command text))
+           ;;   (ask text))
+           )))))
 
 (defvar *reply-message* nil)
 
