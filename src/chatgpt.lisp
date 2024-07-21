@@ -43,7 +43,7 @@
                     :headers `(("Content-Type" . "application/json")
                                ("Authorization" . ,(format nil "Bearer ~A" api-key)))
                     :content (to-json-a
-                              `(("model" . "gpt-3.5-turbo")
+                              `(("model" . (get-config "chatgpt-model"))
                                 ("temperature" . 0.2)
                                 ("messages" . ,*last-messages*)))
                     :read-timeout 200

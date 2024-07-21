@@ -107,6 +107,7 @@
      (mc-address :type :str)
      (mc-token :type :str)
      (chatgpt-base-url :default "https://api/openai.com/v1")
+     (chatgpt-model :default "gpt-3.5-turbo")
      (chatgpt :type :str)
      (intent-address :default "http://127.0.0.1:9797")
      (wxp :default nil)
