@@ -48,9 +48,9 @@
                                 ("messages" . ,*last-messages*)))
                     :read-timeout 200
                     :proxy (let ((proxy (get-config "proxy")))
-                             (if (string= "" proxy)
-                                 dex:*default-proxy*
-                                 proxy)))
+                             (if (get-config "chatgpt-proxy")
+                                 proxy
+                                 dex:*default-proxy*)))
         (declare (ignorable status uri stream))
         (if (str:starts-with-p "application/json"
                                (gethash "content-type"

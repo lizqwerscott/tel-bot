@@ -109,6 +109,7 @@
      (chatgpt-base-url :default "https://api/openai.com/v1")
      (chatgpt-model :default "gpt-3.5-turbo")
      (chatgpt :type :str)
+     (chatgpt-proxy :default nil)
      (intent-address :default "http://127.0.0.1:9797")
      (wxp :default nil)
      (audiop :default nil)
