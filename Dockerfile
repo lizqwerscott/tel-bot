@@ -7,7 +7,8 @@ RUN apk add --no-cache \
     py3-pip \
     sbcl \
     bash \
-    git
+    git \
+    curl
 
 # 设置时区为上海
 RUN apk add tzdata && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
