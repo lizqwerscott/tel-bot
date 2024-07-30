@@ -22,6 +22,7 @@
 
 (defparameter *host* (get-config "wx-host"))
 (defparameter *http-port* (get-config "wx-port"))
+(defparameter *picture-host* (get-config "picture-host"))
 (defparameter *picture-port* (get-config "picture-port"))
 
 (defparameter *server-run* nil)
@@ -162,7 +163,7 @@
                                                     (merge-pathnames "pictures/"
                                                                      (get-data-path)))))
   (download-url (make-uri :scheme "http"
-                          :host "192.168.2.198"
+                          :host *picture-host*
                           :port 5556
                           :path "/picture/get"
                           :query `(("name" . ,file-name)))

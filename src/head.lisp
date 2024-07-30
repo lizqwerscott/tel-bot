@@ -115,6 +115,7 @@
      (audiop :default nil)
      (wx-host :type :str :default "127.0.0.1")
      (wx-port :type :number :default 5757)
+     (picture-host :default "127.0.0.1")
      (picture-port :type :number :default 5556)
      (save-path :type :str)
      (birthday-address :default "127.0.0.1:22400")))
