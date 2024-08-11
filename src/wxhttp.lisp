@@ -157,7 +157,7 @@
                                   (second content))))
             :|message_id|)
     (error (c)
-      (log:error "send telegram message error:~A" content))))
+      (log:error "send ~A telegram message error: ~A" content c))))
 
 (defun download-picture (file-name &optional (path (ensure-directories-exist
                                                     (merge-pathnames "pictures/"
