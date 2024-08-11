@@ -272,7 +272,7 @@
                               (string= message-type "caption_entities"))
                            url)
                     (format t "download url: ~A in ~A~%" url (merge-pathnames (file-url-filename url) path))
-                    (download-url url (merge-pathnames (file-url-filename url) path) t)))
+                    (download-url url (merge-pathnames (file-url-filename url) path) (get-config "proxy"))))
                 (format t "message: ~A~%" words)
                 (handle-message
                  (trim
@@ -346,7 +346,11 @@
       (jonathan:parse
        (uiop:run-program
         (format nil
-                "proxychains4 python ~A ~A ~A '~A' '~A'"
+                "~A python ~A ~A ~A '~A' '~A'"
+                (let ((proxy (get-config "proxy")))
+                  (if (string= proxy "")
+                      ""
+                      (format nil "export http_proxy=~A; export https_proxy=~A;" proxy proxy)))
                 (merge-pathnames "scripts/send_local_photo.py"
                                  (asdf:system-source-directory :tel-bot))
                 (get-config "bot-token")
@@ -368,7 +372,11 @@
       (jonathan:parse
        (uiop:run-program
         (format nil
-                "proxychains4 python ~A ~A ~A ~A '~A' '~A'"
+                "~A python ~A ~A ~A ~A '~A' '~A'"
+                (let ((proxy (get-config "proxy")))
+                  (if (string= proxy "")
+                      ""
+                      (format nil "export http_proxy=~A; export https_proxy=~A;" proxy proxy)))
                 (merge-pathnames "scripts/send_audio.py"
                                  (asdf:system-source-directory :tel-bot))
                 (get-config "bot-token")
@@ -389,7 +397,11 @@
   (jonathan:parse
    (uiop:run-program
     (format nil
-            "proxychains4 python ~A ~A ~A ~A"
+            "~A python ~A ~A ~A ~A"
+            (let ((proxy (get-config "proxy")))
+              (if (string= proxy "")
+                  ""
+                  (format nil "export http_proxy=~A; export https_proxy=~A;" proxy proxy)))
             (merge-pathnames "scripts/send_voice.py"
                              (asdf:system-source-directory :tel-bot))
             (get-config "bot-token")

@@ -91,9 +91,10 @@
       (progn
         (run-shell
          (format nil
-                 "~Acurl -L ~A -o ~A"
-                 (if proxy
-                     "proxychains "
+                 "curl ~A -L ~A -o ~A"
+                 (if (and proxy (not (string= proxy "")))
+                     (format nil
+                             "-x ~A" proxy)
                      "")
                  url
                  save-path))
